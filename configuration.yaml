@@ -1,0 +1,27 @@
+mode: prod
+prod:
+  - botname: Slow Service
+    username: SlowServiceBOT
+    subscription-domain: 'https://sub.slow-service.com'
+    admin: 1211590718
+    token: 
+      6518933256:AAFK2pySUi5y5kX5D6-uM5GRZga3YaCE7WY
+    database:
+      "mongodb+srv://test:test@test.fkbonxy.mongodb.net/?retryWrites=true&w=majority"
+    support-id:
+      ''
+    channel-id:
+      'SlowService'
+    punch-line:
+      'با اسلو، اینترنت هم وقت برای یک فنجان چای داره!'
+    test-subscription-traffic: #GB is the main identifier
+      1
+    test-subscription-time: #Seconds
+      86400
+    traffic-plans:
+      - traffic: 50
+        price: 50000
+      - traffic: 75
+        price: 75000
+      - traffic: 100
+        price: 100000
