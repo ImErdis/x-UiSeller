@@ -6,13 +6,14 @@ index all function handlers
 
 # imports here -----------------------
 # from conversations import
-from conversations import add_servers, add_products, add_referrals, buy_subscriptions
+from conversations import add_servers, add_products, add_referrals, buy_subscriptions, topup
 
 convs = [
     add_servers.conv_handler,
     add_products.conv_handler,
     add_referrals.conv_handler,
-    buy_subscriptions.conv_handler
+    buy_subscriptions.conv_handler,
+    topup.conv_handler
     # addserver.conv_handler,
     #      createsubscription.conv_handler,
     #      generateacc.conv_handler,

@@ -8,6 +8,10 @@ prod:
       6518933256:AAFK2pySUi5y5kX5D6-uM5GRZga3YaCE7WY
     database:
       "mongodb+srv://test:test@test.fkbonxy.mongodb.net/?retryWrites=true&w=majority"
+    cryptomus-payment-key:
+      'if7oiiAZyTGUk5BpC33rLiUCgxx887qD2Eb2pnWXjubj7ATfkX74WS4Cqe8xvHujNQ9qMYgMcCbbr45FHGIHnO5mOoyVbXpuCCy8KKzlRoHgiyuFMjqnKH3xbJyCCQZD'
+    cryptomus-merchant-uuid:
+      'f3225265-c19f-4ea5-9d1c-4598c10aed58'
     support-id:
       ''
     channel-id:

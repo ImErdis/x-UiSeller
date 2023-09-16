@@ -355,7 +355,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         ]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
-        text = "موجودی حساب شما کافی نمی‌باشد.\nلطفا حساب خود را شارژ کنید."
+        text = "❌ موجودی حساب شما کافی نمی‌باشد.\nلطفا حساب خود را شارژ کنید."
 
         return await _send_message(query, reply_markup, text, ConversationHandler.END)
 

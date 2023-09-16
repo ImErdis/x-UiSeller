@@ -7,7 +7,7 @@ from conversations.index import conversations
 from callback.index import handlers
 from telegram.ext import CommandHandler
 from configuration import Config
-from minute_tasks import add_client, delete_client, usage_updater, usage_expiry_scanner
+from minute_tasks import add_client, delete_client, usage_updater, usage_expiry_scanner, currency_scanner, invoice_check
 
 # import logging
 # import sys
@@ -80,11 +80,17 @@ def main():
     remove_user_cron = threading.Thread(target=run_periodically, args=(delete_client.cron, 1))
     usage_updater_cron = threading.Thread(target=run_periodically, args=(usage_updater.cron, 15))
     usage_expiry_scanner_cron = threading.Thread(target=run_periodically, args=(usage_expiry_scanner.cron, 60))
+    usd_currency_scanner_cron = threading.Thread(target=run_periodically, args=(currency_scanner.usd_cron, 3600))
+    crypto_currency_scanner_cron = threading.Thread(target=run_periodically, args=(currency_scanner.crypto_cron, 60))
+    crypto_invoice_scanner_cron =  threading.Thread(target=run_periodically, args=(invoice_check.cron_job, 30))
 
     add_user_cron.start()
     remove_user_cron.start()
     usage_updater_cron.start()
     usage_expiry_scanner_cron.start()
+    usd_currency_scanner_cron.start()
+    crypto_currency_scanner_cron.start()
+    crypto_invoice_scanner_cron.start()
     application.run_polling()
 
 

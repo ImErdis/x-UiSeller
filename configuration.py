@@ -18,6 +18,8 @@ class Config:
         self.test_traffic = float(self.config[self.mode][0]['test-subscription-traffic'])
         self.test_time = int(self.config[self.mode][0]['test-subscription-time'])
         self.subscription_domain = self.config[self.mode][0]['subscription-domain']
+        self.payment_key = self.config[self.mode][0]['cryptomus-payment-key']
+        self.merchant_uuid = self.config[self.mode][0]['cryptomus-merchant-uuid']
         self.traffic_plans = self.config[self.mode][0]['traffic-plans']
         client = pymongo.MongoClient(self.config[self.mode][0]['database'], uuidRepresentation="standard")
         self.db = client.xui

@@ -41,7 +41,8 @@ def start_menu(user: User) -> InlineKeyboardMarkup:
          InlineKeyboardButton("🔬 اشتراک تستی", callback_data="test-subscriptions"),
          InlineKeyboardButton("📋 اطلاعات حساب", callback_data="user_info")],
         [InlineKeyboardButton("📞 ارتباط با ما", callback_data="contact_info"),
-         InlineKeyboardButton("📘 راهنمای اتصال", callback_data="connect_info")]
+         # InlineKeyboardButton("📘 راهنمای اتصال", callback_data="connect_info")
+         ]
     ]
 
     if not test_subscription_available or user.subscriptions:
