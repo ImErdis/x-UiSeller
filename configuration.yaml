@@ -1,11 +1,11 @@
 mode: prod
 prod:
-  - botname: Slow Service
-    username: SlowServiceBOT
+  - botname: Slow VPN
+    username: SlowVPNBOT
     subscription-domain: 'https://sub.slow-service.com'
     admin: 1211590718
     token: 
-      6518933256:AAFK2pySUi5y5kX5D6-uM5GRZga3YaCE7WY
+      6356144307:AAGQR1lT7imvTVEBWGDXwR2SQlCQBkXpoo8
     database:
       "mongodb+srv://test:test@test.fkbonxy.mongodb.net/?retryWrites=true&w=majority"
     cryptomus-payment-key:

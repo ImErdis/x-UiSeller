@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Message
-from telegram.ext import ContextTypes, ConversationHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import ContextTypes, ConversationHandler, CallbackQueryHandler, MessageHandler, filters, \
+    CommandHandler
 from cryptomus import Client
 from callback.menu import menu
 from models.invoice import InvoiceResponse, InvoiceRequest
@@ -128,8 +129,11 @@ class TopUpHandler:
 
     async def topup_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Entry point for the top-up conversation."""
-        query = update.callback_query
-        await query.answer()
+        if update.callback_query:
+            query = update.callback_query
+            await query.answer()
+        else:
+            query = update.message
         context.user_data['topup'] = {}
         return await self._send_message(query, "لطفا 💵 *مبلغ* را به تومان ارسال کتید. (_حداقل پنجاه هزار تومان_)",
                                         TOPUP_AMOUNT)
@@ -181,7 +185,8 @@ class TopUpHandler:
 handler_instance = TopUpHandler()
 
 conv_handler = ConversationHandler(
-    entry_points=[CallbackQueryHandler(handler_instance.topup_start, pattern=f'^{TOPUP}$')],
+    entry_points=[CallbackQueryHandler(handler_instance.topup_start, pattern=f'^{TOPUP}$'),
+                  CommandHandler('charge', handler_instance.topup_start)],
     states={
         TOPUP_AMOUNT: [MessageHandler(filters.Regex('^\d{4,}$'), handler_instance.select_amount)],
         NETWORK: [CallbackQueryHandler(handler_instance.network, pattern='^topup_currency{')],

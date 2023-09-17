@@ -1,7 +1,8 @@
+import asyncio
 import threading
 import time
 
-from telegram.ext import Application, CallbackQueryHandler
+from telegram.ext import Application, CallbackQueryHandler, Updater
 from handlers.index import index
 from conversations.index import conversations
 from callback.index import handlers
@@ -61,14 +62,21 @@ config = Config('configuration.yaml')
 config.show_label()
 
 
-def run_periodically(function, interval):
+def run_periodically(function, interval, *args):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     while True:
-        function()
+        if asyncio.iscoroutinefunction(function):
+            loop.run_until_complete(function(*args))
+        else:
+            function(*args)
         time.sleep(interval)
 
 
 def main():
     application = Application.builder().token(config.token).build()
+
     for k, v in index().items():
         application.add_handler(CommandHandler(k, v))
     for k, v in handlers().items():
@@ -82,7 +90,7 @@ def main():
     usage_expiry_scanner_cron = threading.Thread(target=run_periodically, args=(usage_expiry_scanner.cron, 60))
     usd_currency_scanner_cron = threading.Thread(target=run_periodically, args=(currency_scanner.usd_cron, 3600))
     crypto_currency_scanner_cron = threading.Thread(target=run_periodically, args=(currency_scanner.crypto_cron, 60))
-    crypto_invoice_scanner_cron =  threading.Thread(target=run_periodically, args=(invoice_check.cron_job, 30))
+    crypto_invoice_scanner_cron = threading.Thread(target=run_periodically, args=(invoice_check.cron_job, 30, application.bot))
 
     add_user_cron.start()
     remove_user_cron.start()

@@ -56,7 +56,8 @@ async def buy_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     # Check if there are no products then return with an error
     if not products:
-        return await query.answer('محصولی برای خرید وجود ندارد.')
+        await query.answer('محصولی برای خرید وجود ندارد.')
+        return ConversationHandler.END
 
     # Announce to user that the products are being fetched
     await query.answer('درحال دریافت محصولات...')
@@ -200,9 +201,8 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
 
-    # Extract the duration from the callback data
     match = re.findall(r"\{(.*?)}", query.data)
-    duration = int(match[0])
+    duration = context.user_data['duration'] if match[0] == 'continue' else int(match[0])
 
     # Calculate the final price using the selected product, traffic, and duration
     product_data = products_db.find_one({'_id': context.user_data['subscription']['product']})
@@ -232,6 +232,8 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Prepare the message text
     text = f"💰 *هزینه نهایی*: {final_price:,}T \n"
     text += "آیا مایل به ادامه خرید و پرداخت هزینه می باشید؟"
+    text += '\n\n'
+    text += f"_{context.user_data['subscription']['traffic']:,}GB_-_{context.user_data['subscription']['duration']}M_"
 
     # Prepare the keyboard
     keyboard = [
@@ -370,7 +372,8 @@ async def _send_message(target, reply_markup, text, next_state):
 
 conv_handler = ConversationHandler(
     per_message=False,
-    entry_points=[CallbackQueryHandler(buy_subscriptions, pattern='^buy-subscriptions{')],
+    entry_points=[CallbackQueryHandler(confirm, pattern='^buy-subscriptions{continue}$'),
+                  CallbackQueryHandler(buy_subscriptions, pattern='^buy-subscriptions{')],
     states={
         TRAFFIC: [CallbackQueryHandler(product, pattern='^buy-subscription_product{')],
         # CUSTOM_TRAFFIC: [CallbackQueryHandler(custom_traffic, pattern='^buy-subscription_custom-traffic$')],
