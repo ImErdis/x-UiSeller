@@ -1,3 +1,4 @@
+import httpx
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Message
 from telegram.ext import ContextTypes, ConversationHandler, CallbackQueryHandler, MessageHandler, filters, \
     CommandHandler
@@ -6,6 +7,7 @@ from callback.menu import menu
 from models.invoice import InvoiceResponse, InvoiceRequest
 from configuration import Config
 from utilities.currency_converter import converter
+from minute_tasks.invoice_check import add_job
 import re
 
 config = Config()
@@ -23,25 +25,28 @@ class TopUpHandler:
     @classmethod
     def services(cls):
         """Retrieve and cache available payment services grouped by currency and network."""
-        if not cls.SERVICES_CACHE:
-            response_data = payment.services()
-            grouped = {}
-            for service in response_data:
-                currency = service['currency']
-                network = service['network']
-                if currency not in grouped:
-                    grouped[currency] = {'name': currency, 'network': []}
-                grouped[currency]['network'].append(network)
-            cls.SERVICES_CACHE = grouped
-        return cls.SERVICES_CACHE
+        response_data = payment.services()
+        grouped = {}
+        for service in response_data:
+            currency = service['currency']
+            network = service['network']
+            minimum = service['limit']['min_amount']
+            if currency not in grouped:
+                grouped[currency] = {'name': currency, 'network': []}
+            grouped[currency]['network'].append([network, minimum])
+        return grouped
 
     @classmethod
-    def generate_keyboard(cls):
+    def generate_keyboard(cls, amount):
         """Generate a keyboard with available payment services."""
-        keyboard = []
+        keyboard = [[InlineKeyboardButton('💰 پرداخت ریالی', callback_data=f'topup_currency{{IRT}}')]]
         row = []
         count = 0
+        services = cls.services()
         for service_name in cls.services().keys():
+            converted = amount/converter(service_name)
+            if not any([float(x[1]) < converted for x in services[service_name]['network']]):
+                continue
             if count % 5 == 0 and count != 0:
                 keyboard.append(row)
                 row = []
@@ -57,7 +62,7 @@ class TopUpHandler:
         """Generate a keyboard with available networks for the chosen currency."""
         service = cls.services()[currency]
         keyboard = []
-        for net in service['network']:
+        for net, minimum in service['network']:
             limit = cls.limits(currency, net)
             amount = float(irt_amount)/converter(currency)
             if float(amount) < float(limit['min_amount']) or float(amount) > float(limit['max_amount']):
@@ -146,7 +151,7 @@ class TopUpHandler:
                                             TOPUP_AMOUNT)
         context.user_data['topup']['irt_amount'] = int(message)
         text = "لطفا 💰 *ارز* مورد نظر برای پرداخت رو انتخاب کنید."
-        keyboard = self.generate_keyboard()
+        keyboard = self.generate_keyboard(int(message))
         keyboard.append([InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)])
         reply_markup = InlineKeyboardMarkup(keyboard)
         return await self._send_message(update.message, text, NETWORK, reply_markup)
@@ -161,24 +166,51 @@ class TopUpHandler:
         keyboard = self.generate_network_keyboard(currency, context.user_data['topup']['irt_amount'])
         if not keyboard:
             # Handle the case where there are no valid networks for the given amount
-            pass
+            return NETWORK
         text = f'لطفا 🌐 *شبکه* موردنظر خود را برای {currency} انتخاب کنید.'
         keyboard.append([InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)])
         reply_markup = InlineKeyboardMarkup(keyboard)
         return await self._send_message(query, text, TX_ID, reply_markup)
 
-    async def txid(self, update, context):
+    async def txid(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle the user's choice of transaction ID."""
+
         query = update.callback_query
         await query.answer('درحال ساخت فاکتور')
+
+        # Determine network from query data
         network = re.findall(r"\{(.*?)}", query.data)[0]
         context.user_data['topup']['network'] = network
+
+        if query.data == 'topup_currency{IRT}':
+            context.user_data['topup']['currency'] = 'TRX'
+            context.user_data['topup']['network'] = 'TRON'
+
         user_id = str(query.from_user.id)
         order_id = self.generate_order_id(user_id)
         invoice_response = self.create_and_validate_invoice(context, order_id)
         self.insert_invoice_if_not_exists(invoice_response)
+
+        reply_markup = None
+        if (context.user_data['topup']['currency'] == 'TRX' and
+                context.user_data['topup']['network'] == 'TRON'):
+            amount = str(context.user_data['topup']['irt_amount'] / converter(context.user_data['topup']['currency']))
+            url = httpx.post(
+                config.portal_url,
+                data={'key': config.portal_key, 'amount': amount, 'wallet': invoice_response.address},
+                headers={'Content-Type': 'application/x-www-form-urlencoded'}
+            )
+
+            reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('💰 پرداخت ریالی', url=url.text, callback_data='notabutton')]])
+
+        if 'subscription' not in context.user_data:
+            context.user_data['subscription'] = {}
+
+        add_job(invoice_response.order_id, context.user_data['subscription'])
         text = self.generate_invoice_text(invoice_response)
-        await query.edit_message_text(text, reply_markup=None, parse_mode='Markdown')
+
+        await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+
         return await self._send_message(query.message, "📝  *فاکتور* شما با موفقیت ساخته شد.", ConversationHandler.END)
 
 
@@ -189,7 +221,8 @@ conv_handler = ConversationHandler(
                   CommandHandler('charge', handler_instance.topup_start)],
     states={
         TOPUP_AMOUNT: [MessageHandler(filters.Regex('^\d{4,}$'), handler_instance.select_amount)],
-        NETWORK: [CallbackQueryHandler(handler_instance.network, pattern='^topup_currency{')],
+        NETWORK: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_currency{IRT'),
+                  CallbackQueryHandler(handler_instance.network, pattern='^topup_currency{')],
         TX_ID: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_network{')]
     },
     fallbacks=[CallbackQueryHandler(menu, pattern=f"^{CANCEL}$")]

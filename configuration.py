@@ -20,6 +20,8 @@ class Config:
         self.subscription_domain = self.config[self.mode][0]['subscription-domain']
         self.payment_key = self.config[self.mode][0]['cryptomus-payment-key']
         self.merchant_uuid = self.config[self.mode][0]['cryptomus-merchant-uuid']
+        self.portal_url = self.config[self.mode][0]['irr-portal'][0]['link']
+        self.portal_key = self.config[self.mode][0]['irr-portal'][0]['key']
         self.traffic_plans = self.config[self.mode][0]['traffic-plans']
         client = pymongo.MongoClient(self.config[self.mode][0]['database'], uuidRepresentation="standard")
         self.db = client.xui

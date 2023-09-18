@@ -29,3 +29,7 @@ prod:
         price: 75000
       - traffic: 100
         price: 100000
+    irr-portal:
+      - link: 'https://api.mrswap.org/custom.php'
+        key: '371401024961887068039984'
+
