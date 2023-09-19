@@ -25,16 +25,18 @@ class TopUpHandler:
     @classmethod
     def services(cls):
         """Retrieve and cache available payment services grouped by currency and network."""
-        response_data = payment.services()
-        grouped = {}
-        for service in response_data:
-            currency = service['currency']
-            network = service['network']
-            minimum = service['limit']['min_amount']
-            if currency not in grouped:
-                grouped[currency] = {'name': currency, 'network': []}
-            grouped[currency]['network'].append([network, minimum])
-        return grouped
+        if not cls.SERVICES_CACHE:
+            response_data = payment.services()
+            grouped = {}
+            for service in response_data:
+                currency = service['currency']
+                network = service['network']
+                minimum = service['limit']['min_amount']
+                if currency not in grouped:
+                    grouped[currency] = {'name': currency, 'network': []}
+                grouped[currency]['network'].append([network, minimum])
+            cls.SERVICES_CACHE = grouped
+        return cls.SERVICES_CACHE
 
     @classmethod
     def generate_keyboard(cls, amount):

@@ -7,7 +7,7 @@ index all function handlers
 # imports here -----------------------
 from callback.control_products import control_products, change_product_status
 from callback.contact_info import contact_info
-from callback.user_info import user_info
+from callback.users.user_info import user_info
 from callback.lists import list_users, list_products, list_servers, list_referrals, list_subscriptions
 from callback.menu import menu
 from callback.subscriptions.connect_url import connect_url

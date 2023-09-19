@@ -327,6 +327,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         # Updating user's balance and purchase amount in the database
         config.get_db().users.update_one({'_id': user_id},
                                          {'$set': {'balance': user.balance, 'purchase_amount': user.purchase_amount}})
+        del context.user_data['subscription']
 
         await query.answer("خرید با موفقیت انجام شد!")
 
