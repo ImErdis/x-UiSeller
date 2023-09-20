@@ -50,4 +50,4 @@ async def control(update: Update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Send the message with inline keyboard
-    await query.edit_message_text(text.replace("-", "\\-"), reply_markup=reply_markup, parse_mode='MarkdownV2')
+    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
