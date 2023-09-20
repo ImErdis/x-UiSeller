@@ -1,7 +1,8 @@
 import re
 from bson import ObjectId
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message
-from telegram.ext import (ContextTypes, ConversationHandler, MessageHandler, filters, CallbackQueryHandler)
+from telegram.ext import (ContextTypes, ConversationHandler,
+                          MessageHandler, filters, CallbackQueryHandler)
 from callback.menu import menu
 from callback.users.control import users_db
 from configuration import Config
@@ -31,7 +32,8 @@ async def topup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     money = int(update.message.text)
-    user = users_db.find_one({'_id': context.user_data['control-users_topup']['_id']})
+    user = users_db.find_one(
+        {'_id': context.user_data['control-users_topup']['_id']})
     if not user:
         return ConversationHandler.END
 
@@ -45,7 +47,8 @@ async def amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def _send_message(target, text, next_state):
-    keyboard = [[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]]
+    keyboard = [[InlineKeyboardButton(
+        "🖥️ بازگشت به پنل", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     if isinstance(target, Message):
@@ -57,7 +60,7 @@ async def _send_message(target, text, next_state):
 
 conv_handler = ConversationHandler(
     per_message=False,
-    entry_points=[CallbackQueryHandler(topup, pattern='^create-referrals$')],
+    entry_points=[CallbackQueryHandler(topup, pattern='^control-users_topup')],
     states={
         AMOUNT: [MessageHandler(filters.TEXT, amount)]
     },

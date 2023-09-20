@@ -1,13 +1,16 @@
 import json
 from ipaddress import IPv4Address
-from bson import ObjectId
-from pydantic import BaseModel, constr, Field
-from pydantic.v1 import validator
-from utilities.share import generate_vmess_link, generate_vless_link
-from utilities.api_call import remove_client, get_inbound, get_client, add_clients, reset_inbound_traffic
-from configuration import Config
 
-config = Config(r'E:\PyCharmProjects\howseinBot\configuration.yaml')
+from bson import ObjectId
+from pydantic import BaseModel, Field, constr
+from pydantic.v1 import validator
+
+from configuration import Config
+from utilities.api_call import (add_clients, get_client, get_inbound,
+                                remove_client, reset_inbound_traffic)
+from utilities.share import generate_vless_link, generate_vmess_link
+
+config = Config()
 servers_db = config.get_db().servers
 
 
@@ -131,7 +134,8 @@ class Server(BaseModel):
         Returns:
             list: The list of clients.
         """
-        response = get_inbound(self.url, self.panel_username, self.panel_password, self.inbound_id)
+        response = get_inbound(self.url, self.panel_username,
+                               self.panel_password, self.inbound_id)
         data = response.json()['obj']
         settings = json.loads(data['settings'])
         clients_data = settings['clients']
