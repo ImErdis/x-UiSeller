@@ -50,6 +50,11 @@ class User(BaseModel):
         except ValueError:
             return False
 
+    def add_balance(self, amount: int) -> int:
+        """Add balance to user's current balance."""
+        self.balance += amount
+        return self.balance
+
     def model_dump(self, **kwargs) -> dict:
         """Get a dict representation with the role as an Enum."""
         output = super().model_dump(by_alias=True, **kwargs)

@@ -5,11 +5,12 @@ import uuid
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, helpers
 from configuration import Config
 from models.subscription import Subscription
-from models.user import Roles
+from models.user import Roles, User
 from utilities.user_handlers import process_user
 
 config = Config()
 subscriptions_db = config.get_db().subscriptions
+users_db = config.get_db().users
 
 
 async def control(update: Update, context):
@@ -23,11 +24,30 @@ async def control(update: Update, context):
         return
 
     match = re.findall(r"\{(.*?)}", query.data)
-    user = int(match[0])
+    user = users_db.find_one({'_id': int(match[0])})
+    if not user:
+        return
 
     await query.answer()
 
-    reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_days, subscription))
+    user = User.model_validate(user)
+
+    text = f"""💼 اطلاعات *یوزر*.
+
+    🔢 *ایدی‌عددی*: `{user.id}`
+    👥 *تعداد زیرمجموعه ها*: {user.referral_amount}
+    🛍 *تعداد سرویس ها*: {len(user.subscriptions)}
+    💎 *موجودی*: {user.balance:,} تومان
+
+    🔋 لینک *دعوت* زیرمجموعه:
+    `{user.referral_link}`
+    """
+
+    keyboard = [
+        [InlineKeyboardButton("➕ افزایش موجودی", callback_data=f"control-users_topup{{{user.id}}}")],
+        [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Send the message with inline keyboard
     await query.edit_message_text(text.replace("-", "\\-"), reply_markup=reply_markup, parse_mode='MarkdownV2')
