@@ -10,7 +10,7 @@ from telegram.ext import CommandHandler
 from configuration import Config
 from minute_tasks import add_client, delete_client, usage_updater, usage_expiry_scanner, currency_scanner, invoice_check
 
-# import logging
+import logging
 # import sys
 #
 #

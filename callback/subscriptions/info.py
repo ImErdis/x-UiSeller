@@ -2,7 +2,9 @@ import base64
 import datetime
 import re
 import uuid
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, helpers
+
 from configuration import Config
 from models.subscription import Subscription
 from utilities.user_handlers import process_user
@@ -24,7 +26,7 @@ def create_keyboard(remaining_traffic, remaining_days, subscription):
     ]
 
 
-async def control(update: Update, context):
+async def info(update: Update, context):
     """Sends a message with Contact information."""
 
     # Process user data and retrieve query 

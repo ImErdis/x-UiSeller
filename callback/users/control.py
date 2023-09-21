@@ -1,10 +1,8 @@
-import base64
-import datetime
 import re
-import uuid
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, helpers
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+
 from configuration import Config
-from models.subscription import Subscription
 from models.user import Roles, User
 from utilities.user_handlers import process_user
 

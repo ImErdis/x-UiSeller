@@ -12,7 +12,7 @@ from callback.lists import list_users, list_products, list_servers, list_referra
 from callback.menu import menu
 from callback.subscriptions.connect_url import connect_url
 from callback.subscriptions.get_test import get_test
-from callback.subscriptions.control import control
+from callback.subscriptions.info import info
 from callback.users.control import control as control_users
 
 command_map = {
@@ -28,7 +28,7 @@ command_map = {
     '^control-products_status{': change_product_status,
     '^test-subscriptions$': get_test,
     '^connect_url-subscriptions{': connect_url,
-    '^control-subscriptions{': control,
+    '^control-subscriptions{': info,
     '^control-users{': control_users
 
 }
