@@ -41,7 +41,7 @@ def start_menu(user: User) -> InlineKeyboardMarkup:
          InlineKeyboardButton("🔬 اشتراک تستی", callback_data="test-subscriptions"),
          InlineKeyboardButton("📋 اطلاعات حساب", callback_data="user_info")],
         [InlineKeyboardButton("📞 ارتباط با ما", callback_data="contact_info"),
-         # InlineKeyboardButton("📘 راهنمای اتصال", callback_data="connect_info")
+         InlineKeyboardButton("📘 راهنمای اتصال", url="https://t.me/Slow_Learn")
          ]
     ]
 
@@ -98,6 +98,8 @@ def generate_list_markup(items: list, page: int, count: int, type_: str):
                 InlineKeyboardButton(f'{round( subscription.usage, 2)}/{round(subscription.traffic, 2)} گیگابایت', callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}'),
                 InlineKeyboardButton(f'{"✅" if subscription.active else "❌"}', callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}')
             ])
+    # elif type_ == "prices":
+    #     headers = []
 
     # Add headers
     keyboard.insert(0, [InlineKeyboardButton(header, callback_data="notabutton") for header in headers])
@@ -116,6 +118,7 @@ def generate_list_markup(items: list, page: int, count: int, type_: str):
         keyboard.extend([
             [InlineKeyboardButton("🔍 جست‌وجو سرور", callback_data="search-servers")],
             [InlineKeyboardButton("⚙️ اضافه کردن سرور", callback_data="create-servers")],
+            [InlineKeyboardButton("💎 لیست قیمت ها", callback_data="list-prices{1}")],
             [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
         ])
     elif type_ == "products":
