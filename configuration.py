@@ -23,6 +23,7 @@ class Config:
         self.portal_url = self.config[self.mode][0]['irr-portal'][0]['link']
         self.portal_key = self.config[self.mode][0]['irr-portal'][0]['key']
         self.traffic_plans = self.config[self.mode][0]['traffic-plans']
+        self.enforced_channels = self.config[self.mode][0]['force-channels']
         client = pymongo.MongoClient(self.config[self.mode][0]['database'], uuidRepresentation="standard")
         self.db = client.xui
         self.admin = self.config[self.mode][0]['admin']

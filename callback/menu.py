@@ -1,4 +1,5 @@
-from telegram import Update
+import telegram
+from telegram import Update, InlineKeyboardButton
 from telegram.ext import ConversationHandler
 from utilities.menus import start_menu
 from configuration import Config
@@ -15,6 +16,19 @@ async def menu(update: Update, context):
 
     # Process the user and retrieve or create a User object
     user = process_user(update.callback_query.from_user, context)
+
+    keyboard = []
+
+    # Check if user is joined in the enforced channels
+    for enforced_channel in config.enforced_channels:
+        try:
+            member = await update.get_bot().get_chat_member(chat_id=enforced_channel['id'], user_id=user.id)
+            if not any([member.status == x for x in [telegram.constants.ChatMemberStatus.MEMBER, telegram.constants.ChatMemberStatus.ADMINISTRATOR, telegram.constants.ChatMemberStatus.OWNER, telegram.constants.ChatMemberStatus.RESTRICTED]]):
+                keyboard.append([InlineKeyboardButton(f'Channel {len(keyboard) + 1}', url=enforced_channel['link'])])
+        except telegram.error.Forbidden:
+            continue
+        except telegram.error.BadRequest:
+            continue
 
     # Create the reply markup for the start menu
     reply_markup = start_menu(user)
