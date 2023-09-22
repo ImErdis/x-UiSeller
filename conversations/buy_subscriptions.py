@@ -70,7 +70,7 @@ async def buy_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     # Prepare the keyboard
     keyboard = []
-    headers = ["🔍 اسم", "💸 طرح پایه"]
+    headers = ["🔍 اسم"]
     for product in products:
         text += f"🔸 *{product.name}*: _{'_, _'.join([Server.model_validate(data).name for data in product.servers_documents])}_\n"
         name_button = InlineKeyboardButton(f'{product.name}',
