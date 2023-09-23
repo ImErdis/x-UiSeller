@@ -34,7 +34,7 @@ async def name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def _send_message(target, text, next_state):
-    keyboard = [[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]]
+    keyboard = [[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     if isinstance(target, Message):
@@ -50,6 +50,6 @@ conv_handler = ConversationHandler(
     states={
         NAME: [MessageHandler(filters.TEXT, name)]
     },
-    fallbacks=[CallbackQueryHandler(menu, pattern="^cancel$")],
+    fallbacks=[CallbackQueryHandler(menu, pattern="^menu$")],
     allow_reentry=True
 )
