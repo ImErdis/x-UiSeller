@@ -21,7 +21,7 @@ async def start(update: Update, context):
             channel = await update.get_bot().get_chat(chat_id=enforced_channel['id'])
             member = await channel.get_member(user.id)
             if not any([member.status == x for x in [telegram.constants.ChatMemberStatus.MEMBER, telegram.constants.ChatMemberStatus.ADMINISTRATOR, telegram.constants.ChatMemberStatus.OWNER, telegram.constants.ChatMemberStatus.RESTRICTED]]):
-                keyboard.append([InlineKeyboardButton(f'{channel.full_name}', url=enforced_channel['link'])])
+                keyboard.append([InlineKeyboardButton(f'{channel.title}', url=enforced_channel['link'])])
         except telegram.error.Forbidden:
             continue
         except telegram.error.BadRequest:
@@ -41,7 +41,7 @@ async def start(update: Update, context):
     # Welcome message text
     text = f"""👋 به ربات *{config.get_botname()}* خوش آمدید!
     
-{punch_line if config.punch_line else None}
+{punch_line if config.punch_line else ''}
 
 🌐 از اینکه سرویس های مارا انتخاب کردید متشکریم"""
 
