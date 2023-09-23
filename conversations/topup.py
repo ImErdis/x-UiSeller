@@ -213,7 +213,7 @@ class TopUpHandler:
 
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
 
-        return await self._send_message(query.message, "📝  *فاکتور* شما با موفقیت ساخته شد.", ConversationHandler.END)
+        return await self._send_message(query.message, "📝  *فاکتور* شما با موفقیت ساخته شد.", ConversationHandler.END, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]]))
 
 
 handler_instance = TopUpHandler()
