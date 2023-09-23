@@ -33,10 +33,12 @@ async def menu(update: Update, context):
     # Create the reply markup for the start menu
     reply_markup = start_menu(user)
 
+    punch_line = f'_"{config.punch_line}"_'
+
     # Welcome message text
     text = f"""👋 به ربات *{config.get_botname()}* خوش آمدید!
-
-_"{config.punch_line}"_
+    
+{punch_line if config.punch_line else None}
 
 🌐 از اینکه سرویس های مارا انتخاب کردید متشکریم"""
 
