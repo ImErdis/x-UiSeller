@@ -27,7 +27,7 @@ async def name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def plans(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     list_dict = []
     try:
-        list_dict = [{'traffic': line.split(" - ")[0].strip(), 'price': line.split(" - ")[1].strip()} for line in
+        list_dict = [{'traffic': int(line.split(" - ")[0].strip()), 'price': int(line.split(" - ")[1].strip())} for line in
                      update.message.text.strip().split("\n")]
     except:
         return await _send_message(update.message, f"""لطفا لیست 📜 *قیمت ها* را ارسال کنید.""", PLANS)
