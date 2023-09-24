@@ -153,7 +153,9 @@ class TopUpHandler:
             context.user_data['topup'] = {
                 'irt_amount': int(match[0])
             }
+            await query.answer()
         else:
+            query = update.message
             message = update.message.text
             if int(message) < 50000:
                 return await self._send_message(update.message, "❌ دوباره ارسال کنید، حداقل مقدار *پنجاه هزار تومان* است.",
@@ -163,7 +165,7 @@ class TopUpHandler:
         keyboard = self.generate_keyboard(context.user_data['topup']['irt_amount'])
         keyboard.append([InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        return await self._send_message(update.message, text, NETWORK, reply_markup)
+        return await self._send_message(query, text, NETWORK, reply_markup)
 
     async def network(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle the user's choice of network for the chosen currency."""
@@ -226,9 +228,9 @@ class TopUpHandler:
 handler_instance = TopUpHandler()
 
 conv_handler = ConversationHandler(
-    entry_points=[CallbackQueryHandler(handler_instance.topup_start, pattern=f'^{TOPUP}$'),
-                  CommandHandler('charge', handler_instance.topup_start),
-                  CallbackQueryHandler(handler_instance.select_amount, pattern=f'^{TOPUP}' + '{')],
+    entry_points=[CallbackQueryHandler(handler_instance.select_amount, pattern=f'^{TOPUP}' + '{'),
+                  CallbackQueryHandler(handler_instance.topup_start, pattern=f'^{TOPUP}$'),
+                  CommandHandler('charge', handler_instance.topup_start)],
     states={
         TOPUP_AMOUNT: [MessageHandler(filters.Regex('^\d{4,}$'), handler_instance.select_amount)],
         NETWORK: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_currency{IRT'),
