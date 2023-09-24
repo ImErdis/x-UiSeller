@@ -14,7 +14,7 @@ config = Config()
 invoices_db = config.get_db().invoices
 payment = Client.payment(config.payment_key, config.merchant_uuid)
 
-TOPUP_AMOUNT, NETWORK, TX_ID = range(3)
+TOPUP_AMOUNT, METHOD, NETWORK, TX_ID = range(4)
 CANCEL = "cancel"
 TOPUP = "topup"
 
@@ -41,12 +41,12 @@ class TopUpHandler:
     @classmethod
     def generate_keyboard(cls, amount):
         """Generate a keyboard with available payment services."""
-        keyboard = [[InlineKeyboardButton('💰 پرداخت ریالی', callback_data=f'topup_currency{{IRT}}')]]
+        keyboard = []
         row = []
         count = 0
         services = cls.services()
         for service_name in cls.services().keys():
-            converted = amount/converter(service_name)
+            converted = amount / converter(service_name)
             if not any([float(x[1]) < converted for x in services[service_name]['network']]):
                 continue
             if count % 5 == 0 and count != 0:
@@ -66,7 +66,7 @@ class TopUpHandler:
         keyboard = []
         for net, minimum in service['network']:
             limit = cls.limits(currency, net)
-            amount = float(irt_amount)/converter(currency)
+            amount = float(irt_amount) / converter(currency)
             if float(amount) < float(limit['min_amount']) or float(amount) > float(limit['max_amount']):
                 continue
             keyboard.append(InlineKeyboardButton(f'{net}', callback_data=f'topup_network{{{net}}}'))
@@ -94,7 +94,7 @@ class TopUpHandler:
     def create_and_validate_invoice(context, order_id):
         """Create and validate an invoice based on the user's input."""
         invoice_request = InvoiceRequest(
-            amount=str(context.user_data['topup']['irt_amount']/converter(context.user_data['topup']['currency'])),
+            amount=str(context.user_data['topup']['irt_amount'] / converter(context.user_data['topup']['currency'])),
             order_id=order_id,
             currency=context.user_data['topup']['currency'],
             network=context.user_data['topup']['network'],
@@ -126,7 +126,8 @@ class TopUpHandler:
 〽️ پرداخت شما به صورت خودکار پردازش می شود"""
 
     @staticmethod
-    async def _send_message(target, text, next_state, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]])):
+    async def _send_message(target, text, next_state, reply_markup=InlineKeyboardMarkup(
+        [[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]])):
         """Send or edit a message based on the target type."""
         if isinstance(target, Message):
             await target.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
@@ -153,17 +154,29 @@ class TopUpHandler:
             context.user_data['topup'] = {
                 'irt_amount': int(match[0])
             }
-            await query.answer()
+            await query.answer('درحال دریافت روش های پرداخت')
         else:
             query = update.message
             message = update.message.text
             if int(message) < 50000:
-                return await self._send_message(update.message, "❌ دوباره ارسال کنید، حداقل مقدار *پنجاه هزار تومان* است.",
+                return await self._send_message(update.message,
+                                                "❌ دوباره ارسال کنید، حداقل مقدار *پنجاه هزار تومان* است.",
                                                 TOPUP_AMOUNT)
             context.user_data['topup']['irt_amount'] = int(message)
+        text = "لطفا ⌨️ *روش* مورد نظر برای پرداخت رو انتخاب کنید."
+
+        keyboard = [[InlineKeyboardButton('💰 پرداخت ریالی', callback_data=f'topup_method{{IRT}}')],
+                    [InlineKeyboardButton('💸 پرداخت ارزی', callback_data=f'topup_method{{CRYPTO}}')],
+                    [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        return await self._send_message(query, text, METHOD, reply_markup)
+
+    async def crypto_method(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer('درحال دریافت ارز ها')
         text = "لطفا 💰 *ارز* مورد نظر برای پرداخت رو انتخاب کنید."
+
         keyboard = self.generate_keyboard(context.user_data['topup']['irt_amount'])
-        keyboard.append([InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)])
         reply_markup = InlineKeyboardMarkup(keyboard)
         return await self._send_message(query, text, NETWORK, reply_markup)
 
@@ -212,7 +225,8 @@ class TopUpHandler:
                 headers={'Content-Type': 'application/x-www-form-urlencoded'}
             )
 
-            reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('💰 پرداخت ریالی', url=url.text, callback_data='notabutton')]])
+            reply_markup = InlineKeyboardMarkup(
+                [[InlineKeyboardButton('💰 پرداخت ریالی', url=url.text, callback_data='notabutton')]])
 
         if 'subscription' not in context.user_data:
             context.user_data['subscription'] = {}
@@ -222,7 +236,9 @@ class TopUpHandler:
 
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
 
-        return await self._send_message(query.message, "📝  *فاکتور* شما با موفقیت ساخته شد.", ConversationHandler.END, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]]))
+        return await self._send_message(query.message, "📝  *فاکتور* شما با موفقیت ساخته شد.", ConversationHandler.END,
+                                        reply_markup=InlineKeyboardMarkup(
+                                            [[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]]))
 
 
 handler_instance = TopUpHandler()
@@ -233,8 +249,11 @@ conv_handler = ConversationHandler(
                   CommandHandler('charge', handler_instance.topup_start)],
     states={
         TOPUP_AMOUNT: [MessageHandler(filters.Regex('^\d{4,}$'), handler_instance.select_amount)],
-        NETWORK: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_currency{IRT'),
-                  CallbackQueryHandler(handler_instance.network, pattern='^topup_currency{')],
+        METHOD: [
+            CallbackQueryHandler(handler_instance.crypto_method, pattern='^topup_method{CRYPTO}$'),
+            CallbackQueryHandler(handler_instance.txid, pattern='^topup_method{IRT}$')
+        ],
+        NETWORK: [CallbackQueryHandler(handler_instance.network, pattern='^topup_currency{')],
         TX_ID: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_network{')]
     },
     fallbacks=[CallbackQueryHandler(menu, pattern=f"^{CANCEL}$")]
