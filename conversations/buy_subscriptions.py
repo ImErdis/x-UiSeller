@@ -363,7 +363,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         # User doesn't have enough balance, show the top-up button
         keyboard = [
-            [InlineKeyboardButton("💳 شارژ حساب", callback_data="topup")],
+            [InlineKeyboardButton("💳 شارژ حساب", callback_data=f"topup{{{final_price}}}")],
             [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]
         ]
 

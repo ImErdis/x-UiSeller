@@ -147,13 +147,20 @@ class TopUpHandler:
 
     async def select_amount(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle the user's input for the top-up amount."""
-        message = update.message.text
-        if int(message) < 50000:
-            return await self._send_message(update.message, "❌ دوباره ارسال کنید، حداقل مقدار *پنجاه هزار تومان* است.",
-                                            TOPUP_AMOUNT)
-        context.user_data['topup']['irt_amount'] = int(message)
+        if update.callback_query:
+            query = update.callback_query
+            match = re.findall(r"\{(.*?)}", query.data)
+            context.user_data['topup'] = {
+                'irt_amount': int(match[0])
+            }
+        else:
+            message = update.message.text
+            if int(message) < 50000:
+                return await self._send_message(update.message, "❌ دوباره ارسال کنید، حداقل مقدار *پنجاه هزار تومان* است.",
+                                                TOPUP_AMOUNT)
+            context.user_data['topup']['irt_amount'] = int(message)
         text = "لطفا 💰 *ارز* مورد نظر برای پرداخت رو انتخاب کنید."
-        keyboard = self.generate_keyboard(int(message))
+        keyboard = self.generate_keyboard(context.user_data['topup']['irt_amount'])
         keyboard.append([InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)])
         reply_markup = InlineKeyboardMarkup(keyboard)
         return await self._send_message(update.message, text, NETWORK, reply_markup)
