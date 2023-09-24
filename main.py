@@ -78,7 +78,6 @@ def run_periodically(function, interval, *args):
 
 
 def main():
-    print(config.traffic_plans)
     Prices(name="Default", plans=config.traffic_plans).commit_changes()
     application = Application.builder().token(config.token).build()
 
