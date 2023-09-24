@@ -40,7 +40,7 @@ async def info(update: Update, context):
 
     # Calculate remaining traffic and days
     remaining_traffic = round(subscription.traffic - subscription.usage, 2)
-    remaining_seconds = (subscription.expiry_time - datetime.datetime.now()).seconds
+    remaining_seconds = (subscription.expiry_time - datetime.datetime.now()).total_seconds()
 
     # Compose the message
     text = (

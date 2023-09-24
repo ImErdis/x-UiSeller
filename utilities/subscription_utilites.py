@@ -7,11 +7,12 @@ def create_keyboard(remaining_traffic, remaining_seconds, subscription):
         [InlineKeyboardButton(header, callback_data='notabutton') for header in
          ['⚡️ حجم باقی‌مانده', '⏳ زمان باقی‌مانده']],
         [InlineKeyboardButton(value, callback_data='notabutton') for value in
-         [f'{remaining_traffic} گیگابایت', f'{remaining_seconds}']],
+         [f'{remaining_traffic} گیگابایت', f'{format_time(remaining_seconds)}']],
         [InlineKeyboardButton('🔗 لینک اتصال',
                               callback_data=f'connect_url-subscriptions{{{subscription.uuid_decoded}}}')],
         [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
     ]
+
 
 def format_time(remaining_seconds):
     # Constants
@@ -35,10 +36,12 @@ def format_time(remaining_seconds):
     # Calculate Days + Hours
     if remaining_seconds < SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH:
         days = remaining_seconds // (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)
-        hours = (remaining_seconds % (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)) // (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
+        hours = (remaining_seconds % (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)) // (
+                    SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
         return f"{days} روز و {hours} ساعت"
 
     # Calculate Months + Days
     months = remaining_seconds // (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH)
-    days = (remaining_seconds % (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH)) // (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)
+    days = (remaining_seconds % (SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH)) // (
+                SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)
     return f"{months} ماه و {days} روز"
