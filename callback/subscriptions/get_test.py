@@ -58,7 +58,6 @@ async def get_test(update: Update, context):
     subscription.initiate_on_servers()
     subscriptions_db.insert_one(subscription.model_dump(by_alias=True))
 
-
     # Calculate remaining traffic and days
     remaining_traffic = round(subscription.traffic - subscription.usage, 2)
     remaining_days = (subscription.expiry_time - datetime.datetime.now()).days
@@ -69,8 +68,9 @@ async def get_test(update: Update, context):
         f"- 📮 *نام*: _{helpers.escape_markdown(subscription.name, version=2)}_\n"
         f"- 🔑 *آیدی*: `{subscription.mongo_id}`\n\n"
         f"🌐 لینک *اشتراک*:\n"
-        f"`{config.subscription_domain}/subscription?uuid={subscription.mongo_id}`"
+        f"`{config.subscription_domain}/subscription?uuid={subscription.mongo_id}\n\n"
     )
+    text += f'🔗 لینک های *اتصال*: \n\n{subscription.get_links_message()}'
 
     reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_days, subscription))
 
