@@ -110,7 +110,7 @@ async def product(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Prepare the keyboard
     keyboard = []
     headers = ["🔋 ترافیک", "💸 قیمت"]
-    for plan in config.traffic_plans:
+    for plan in product.traffic_plans:
         price = round(plan['price'] * product.price_multiplier)
         keyboard.append([InlineKeyboardButton(f'{plan["traffic"]:,}G',
                                               callback_data=f'buy-subscription_traffic{{{plan["traffic"]}}}'),
@@ -133,13 +133,9 @@ async def time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     traffic = 0
     if update.callback_query:
         query = update.callback_query
-        await query.answer()
         # Extract the traffic from the callback data
         match = re.findall(r"\{(.*?)}", query.data)
         traffic = int(match[0])
-
-        # Calculate price for the selected traffic, Get the traffic price form the config.traffic_plans list
-        traffic_price = next((plan['price'] for plan in config.traffic_plans if plan['traffic'] == traffic), None)
         # Fetch the product data
         product_data = products_db.find_one({'_id': context.user_data['subscription']['product']})
         if not product_data:
@@ -147,6 +143,13 @@ async def time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
         # Convert the product data to the Product model
         product = Product.model_validate(product_data)
+
+        # Calculate price for the selected traffic, Get the traffic price form the config.traffic_plans list
+        traffic_price = next((plan['price'] for plan in product.traffic_plans if plan['traffic'] == traffic), None)
+        if traffic_price is None:
+            await query.answer('محصول مورد نظر یافت نشد.')
+            return ConversationHandler.END
+        await query.answer()
         base_price = round(traffic_price * product.price_multiplier)
     else:
         query = update.message
@@ -199,7 +202,6 @@ async def time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # Show the final price and get the confirmation to create the subscription
 async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
-    await query.answer()
 
     match = re.findall(r"\{(.*?)}", query.data)
     duration = context.user_data['duration'] if match[0] == 'continue' else int(match[0])
@@ -212,8 +214,12 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     # Convert the product data to the Product model
     product = Product.model_validate(product_data)
-    traffic_price = next((plan['price'] for plan in config.traffic_plans if
+    traffic_price = next((plan['price'] for plan in product.traffic_plans if
                           plan['traffic'] == context.user_data['subscription']['traffic']), None)
+    if traffic_price is None:
+        await query.answer('محصول مورد نظر یافت نشد.')
+        return ConversationHandler.END
+    await query.answer()
     base_price = round(traffic_price * product.price_multiplier)
     final_price = base_price * duration
 

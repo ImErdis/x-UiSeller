@@ -11,6 +11,9 @@ from configuration import Config
 from minute_tasks import add_client, delete_client, usage_updater, usage_expiry_scanner, currency_scanner, invoice_check
 
 import logging
+
+from models.prices import Prices
+
 # import sys
 #
 #
@@ -75,6 +78,8 @@ def run_periodically(function, interval, *args):
 
 
 def main():
+    print(config.traffic_plans)
+    Prices(name="Default", plans=config.traffic_plans).commit_changes()
     application = Application.builder().token(config.token).build()
 
     for k, v in index().items():

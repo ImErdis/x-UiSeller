@@ -24,6 +24,12 @@ class Product(BaseModel):
     servers: List[ObjectId] = Field(..., description="List of server IDs associated with the product")
     price_multiplier: float = Field(default=1.0, description="Multiplier for product pricing")
     stock: int = Field(..., description="Quantity of the product in stock")
+    price_plan: ObjectId = Field(default_factory=lambda: config.get_db().prices.find_one({'name': 'Default'})['_id'], description="The price plan ID")
+
+    @property
+    def traffic_plans(self) -> List:
+        """Fetch the traffic plans from the price plan document."""
+        return config.get_db().prices.find_one({'_id': self.price_plan})['plans']
 
     @property
     def in_stock(self) -> bool:

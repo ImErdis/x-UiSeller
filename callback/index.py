@@ -8,7 +8,7 @@ index all function handlers
 from callback.control_products import control_products, change_product_status
 from callback.contact_info import contact_info
 from callback.users.user_info import user_info
-from callback.lists import list_users, list_products, list_servers, list_referrals, list_subscriptions
+from callback.lists import list_users, list_products, list_servers, list_referrals, list_subscriptions, list_prices
 from callback.menu import menu
 from callback.subscriptions.connect_url import connect_url
 from callback.subscriptions.get_test import get_test
@@ -26,6 +26,7 @@ command_map = {
     '^list-products': list_products,
     '^list-subscriptions': list_subscriptions,
     '^list-referrals': list_referrals,
+    '^list-prices': list_prices,
     '^control-products{': control_products,
     '^control-products_status{': change_product_status,
     '^test-subscriptions$': get_test,

@@ -2,7 +2,7 @@ import re
 from telegram import Update
 from configuration import Config
 from models.user import User, Roles
-from utilities.menus import products_list, servers_list, users_list, referrals_list, subscriptions_list
+from utilities.menus import products_list, servers_list, users_list, referrals_list, subscriptions_list, prices_list
 
 # Load configuration from 'configuration.yaml'
 config = Config('configuration.yaml')
@@ -46,10 +46,12 @@ async def list_items(update: Update, context, item_type):
     elif item_type == 'subscription':
         text = "👥 لیست *اشتراک ها*ی شما."
         reply_markup = subscriptions_list(page, user)
+    elif item_type == 'prices':
+        text = "🗒 لیست *قیمت ها* به شرح زیر میباشد."
+        reply_markup = prices_list(page)
 
     # Edit the message with the updated text and reply markup
     await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
-
 
 
 async def list_users(update: Update, context):
@@ -75,3 +77,8 @@ async def list_referrals(update: Update, context):
 async def list_subscriptions(update: Update, context):
     """Sends a message with a list of current subscriptions."""
     await list_items(update, context, 'subscription')
+
+
+async def list_prices(update: Update, context):
+    """Sends a message with a list of current subscriptions."""
+    await list_items(update, context, 'prices')

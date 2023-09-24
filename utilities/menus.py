@@ -1,5 +1,7 @@
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+from models.prices import Prices
 from models.user import User, Roles
 from models.server import Server
 from models.product import Product, Status
@@ -94,12 +96,20 @@ def generate_list_markup(items: list, page: int, count: int, type_: str):
         headers = ["🔍 اسم", "⚡️ حجم", "🎛 فعال"]
         for subscription in items:
             keyboard.append([
-                InlineKeyboardButton(f'{subscription.name}', callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}'),
-                InlineKeyboardButton(f'{round( subscription.usage, 2)}/{round(subscription.traffic, 2)} گیگابایت', callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}'),
-                InlineKeyboardButton(f'{"✅" if subscription.active else "❌"}', callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}')
+                InlineKeyboardButton(f'{subscription.name}',
+                                     callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}'),
+                InlineKeyboardButton(f'{round(subscription.usage, 2)}/{round(subscription.traffic, 2)} گیگابایت',
+                                     callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}'),
+                InlineKeyboardButton(f'{"✅" if subscription.active else "❌"}',
+                                     callback_data=f'control-subscriptions{{{subscription.uuid_decoded}}}')
             ])
-    # elif type_ == "prices":
-    #     headers = []
+    elif type_ == "prices":
+        headers = ["🔍 اسم"]
+        for price in items:
+            keyboard.append([
+                InlineKeyboardButton(f'{price.name}',
+                                     callback_data=f'control-prices{{{price.mongo_id}}}')
+            ])
 
     # Add headers
     keyboard.insert(0, [InlineKeyboardButton(header, callback_data="notabutton") for header in headers])
@@ -138,6 +148,11 @@ def generate_list_markup(items: list, page: int, count: int, type_: str):
             # [InlineKeyboardButton("🔍 جست‌وجو اشتراک", callback_data="search-subscriptions")],
             [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
         ])
+    elif type_ == "prices":
+        keyboard.extend([
+            [InlineKeyboardButton("⚙️ اضافه کردن قیمت", callback_data="create-prices")],
+            [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
+        ])
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -165,3 +180,8 @@ def referrals_list(page: int) -> InlineKeyboardMarkup:
 def subscriptions_list(page: int, user: User) -> InlineKeyboardMarkup:
     subscriptions = user.subscriptions[(page - 1) * 30:page * 30]
     return generate_list_markup(subscriptions, page, len(user.subscriptions), "subscriptions")
+
+
+def prices_list(page: int) -> InlineKeyboardMarkup:
+    prices, count = fetch_from_db("prices", Prices, page)
+    return generate_list_markup(prices, page, count, "prices")
