@@ -177,6 +177,7 @@ class TopUpHandler:
         text = "لطفا 💰 *ارز* مورد نظر برای پرداخت رو انتخاب کنید."
 
         keyboard = self.generate_keyboard(context.user_data['topup']['irt_amount'])
+        keyboard.append([InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)])
         reply_markup = InlineKeyboardMarkup(keyboard)
         return await self._send_message(query, text, NETWORK, reply_markup)
 
@@ -206,7 +207,7 @@ class TopUpHandler:
         network = re.findall(r"\{(.*?)}", query.data)[0]
         context.user_data['topup']['network'] = network
 
-        if query.data == 'topup_currency{IRT}':
+        if query.data == 'topup_method{IRT}':
             context.user_data['topup']['currency'] = 'TRX'
             context.user_data['topup']['network'] = 'TRON'
 
@@ -256,5 +257,6 @@ conv_handler = ConversationHandler(
         NETWORK: [CallbackQueryHandler(handler_instance.network, pattern='^topup_currency{')],
         TX_ID: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_network{')]
     },
-    fallbacks=[CallbackQueryHandler(menu, pattern=f"^{CANCEL}$")]
+    fallbacks=[CallbackQueryHandler(menu, pattern=f"^{CANCEL}$")],
+    allow_reentry=True,
 )
