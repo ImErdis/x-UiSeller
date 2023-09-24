@@ -63,16 +63,9 @@ async def get_test(update: Update, context):
     remaining_days = (subscription.expiry_time - datetime.datetime.now()).days
 
     # Compose the message
-    text = (
-        f"✏️ مشخصات *اشتراک*\\.\n\n"
-        f"- 📮 *نام*: _{helpers.escape_markdown(subscription.name, version=2)}_\n"
-        f"- 🔑 *آیدی*: `{subscription.mongo_id}`\n\n"
-        f"🌐 لینک *اشتراک*:\n"
-        f"`{config.subscription_domain}/subscription?uuid={subscription.mongo_id}\n\n"
-    )
-    text += f'🔗 لینک های *اتصال*: \n\n{subscription.get_links_message()}'
+    text = f'🔗 لینک های *اتصال*: \n\n{subscription.get_links_message()}'
 
     reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_days, subscription))
 
     # Send the message with inline keyboard
-    await query.edit_message_text(text.replace("-", "\\-").replace("=", "\\="), reply_markup=reply_markup, parse_mode='MarkdownV2')
+    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
