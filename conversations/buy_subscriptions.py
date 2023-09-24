@@ -287,8 +287,12 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     # Convert the product data to the Product model
     product = Product.model_validate(product_data)
-    traffic_price = next((plan['price'] for plan in config.traffic_plans if
+    traffic_price = next((plan['price'] for plan in product.traffic_plans if
                           plan['traffic'] == context.user_data['subscription']['traffic']), None)
+    if traffic_price is None:
+        await query.answer('محصول مورد نظر یافت نشد.')
+        return ConversationHandler.END
+    await query.answer()
     base_price = round(traffic_price * product.price_multiplier)
     final_price = base_price * context.user_data['subscription']['duration']
     discounts = {
