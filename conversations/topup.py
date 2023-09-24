@@ -227,7 +227,8 @@ handler_instance = TopUpHandler()
 
 conv_handler = ConversationHandler(
     entry_points=[CallbackQueryHandler(handler_instance.topup_start, pattern=f'^{TOPUP}$'),
-                  CommandHandler('charge', handler_instance.topup_start)],
+                  CommandHandler('charge', handler_instance.topup_start),
+                  CallbackQueryHandler(handler_instance.select_amount, pattern=f'^{TOPUP}' + '{')],
     states={
         TOPUP_AMOUNT: [MessageHandler(filters.Regex('^\d{4,}$'), handler_instance.select_amount)],
         NETWORK: [CallbackQueryHandler(handler_instance.txid, pattern='^topup_currency{IRT'),
