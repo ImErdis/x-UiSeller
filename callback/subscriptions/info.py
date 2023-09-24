@@ -7,23 +7,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, helpers
 
 from configuration import Config
 from models.subscription import Subscription
+from utilities.subscription_utilites import create_keyboard
 from utilities.user_handlers import process_user
 
 config = Config()
 subscriptions_db = config.get_db().subscriptions
-
-
-def create_keyboard(remaining_traffic, remaining_days, subscription):
-    """Generate inline keyboard for the given subscription."""
-    return [
-        [InlineKeyboardButton(header, callback_data='notabutton') for header in
-         ['⚡️ حجم باقی‌مانده', '⏳ زمان باقی‌مانده']],
-        [InlineKeyboardButton(value, callback_data='notabutton') for value in
-         [f'{remaining_traffic} گیگابایت', f'{remaining_days} روز']],
-        [InlineKeyboardButton('🔗 لینک اتصال',
-                              callback_data=f'connect_url-subscriptions{{{subscription.uuid_decoded}}}')],
-        [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
-    ]
 
 
 async def info(update: Update, context):
@@ -52,7 +40,7 @@ async def info(update: Update, context):
 
     # Calculate remaining traffic and days
     remaining_traffic = round(subscription.traffic - subscription.usage, 2)
-    remaining_days = (subscription.expiry_time - datetime.datetime.now()).days
+    remaining_seconds = (subscription.expiry_time - datetime.datetime.now()).seconds
 
     # Compose the message
     text = (
@@ -63,7 +51,7 @@ async def info(update: Update, context):
         f"`{config.subscription_domain}/subscription?uuid={subscription.mongo_id}`"
     )
 
-    reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_days, subscription))
+    reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_seconds, subscription))
 
     # Send the message with inline keyboard
     await query.edit_message_text(text.replace("-", "\\-"), reply_markup=reply_markup, parse_mode='MarkdownV2')

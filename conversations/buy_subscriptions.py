@@ -9,6 +9,7 @@ from models.product import Status, Product
 from models.server import Server
 from models.subscription import Subscription
 from models.user import User
+from utilities.subscription_utilites import create_keyboard
 
 config = Config('configuration.yaml')
 products_db = config.get_db().products
@@ -257,19 +258,6 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return await _send_message(query, reply_markup, text, FINALIZE_PURCHASE)
 
 
-def create_keyboard(remaining_traffic, remaining_days, subscription):
-    """Generate inline keyboard for the given subscription."""
-    return [
-        [InlineKeyboardButton(header, callback_data='notabutton') for header in
-         ['⚡️ حجم باقی‌مانده', '⏳ زمان باقی‌مانده']],
-        [InlineKeyboardButton(value, callback_data='notabutton') for value in
-         [f'{remaining_traffic} گیگابایت', f'{remaining_days} روز']],
-        [InlineKeyboardButton('🔗 لینک اتصال',
-                              callback_data=f'connect_url-subscriptions{{{subscription.uuid_decoded}}}')],
-        [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
-    ]
-
-
 # This function will check user's balance, create the subscription, or show a top-up button.
 async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
@@ -343,7 +331,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         # Calculate remaining traffic and days
         remaining_traffic = round(subscription.traffic - subscription.usage, 2)
-        remaining_days = (subscription.expiry_time - datetime.datetime.now()).days
+        remaining_seconds = (subscription.expiry_time - datetime.datetime.now()).seconds
 
         # Compose the message
         text = (
@@ -354,7 +342,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             f"`{config.subscription_domain}/subscription?uuid={subscription.mongo_id}`"
         )
 
-        reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_days, subscription))
+        reply_markup = InlineKeyboardMarkup(create_keyboard(remaining_traffic, remaining_seconds, subscription))
 
         # Send the message with inline keyboard
         await query.edit_message_text(text.replace("-", "\\-"), reply_markup=reply_markup, parse_mode='MarkdownV2')
