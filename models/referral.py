@@ -1,6 +1,7 @@
 from bson import ObjectId
 from pydantic import BaseModel, Field
 from configuration import Config
+from models.user import User
 
 config = Config()
 
@@ -12,6 +13,12 @@ class Referral(BaseModel):
     @property
     def amount(self):
         return config.get_db().users.count_documents({'referrer.id': self.mongo_id})
+
+    @property
+    def total_charge(self):
+        users = [User.model_validate(x) for x in config.get_db().users.find({'referrer.id': self.mongo_id})]
+        return sum([x.purchase_amount + x.balance for x in users])
+
 
     @property
     def link(self) -> str:

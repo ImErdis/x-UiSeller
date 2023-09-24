@@ -118,13 +118,13 @@ def generate_list_markup(items: list, page: int, count: int, type_: str):
         keyboard.extend([
             [InlineKeyboardButton("🔍 جست‌وجو سرور", callback_data="search-servers")],
             [InlineKeyboardButton("⚙️ اضافه کردن سرور", callback_data="create-servers")],
-            [InlineKeyboardButton("💎 لیست قیمت ها", callback_data="list-prices{1}")],
             [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
         ])
     elif type_ == "products":
         keyboard.extend([
             [InlineKeyboardButton("🔍 جست‌وجو محصول", callback_data="search-products")],
             [InlineKeyboardButton("⚙️ اضافه کردن محصول", callback_data="create-products")],
+            [InlineKeyboardButton("💎 لیست قیمت ها", callback_data="list-prices{1}")],
             [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
         ])
     elif type_ == "referrals":

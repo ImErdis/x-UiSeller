@@ -14,6 +14,8 @@ from callback.subscriptions.connect_url import connect_url
 from callback.subscriptions.get_test import get_test
 from callback.subscriptions.info import info
 from callback.users.control import control as control_users
+from callback.referrals.control import control as control_referrals
+from callback.referrals.control import delete as control_referrals_delete
 
 command_map = {
     '^menu$': menu,
@@ -29,7 +31,9 @@ command_map = {
     '^test-subscriptions$': get_test,
     '^connect_url-subscriptions{': connect_url,
     '^control-subscriptions{': info,
-    '^control-users{': control_users
+    '^control-users{': control_users,
+    '^control-referrals{': control_referrals,
+    '^control-referrals_delete{': control_referrals_delete,
 
 }
 

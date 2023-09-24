@@ -32,14 +32,13 @@ async def control(update: Update, context):
 
     text = f"""💼 اطلاعات *یوزر*.
 
-    🔢 *ایدی‌عددی*: `{user.id}`
-    👥 *تعداد زیرمجموعه ها*: {user.referral_amount}
-    🛍 *تعداد سرویس ها*: {len(user.subscriptions)}
-    💎 *موجودی*: {user.balance:,} تومان
+🔢 *ایدی‌عددی*: `{user.id}`
+👥 *تعداد زیرمجموعه ها*: {user.referral_amount}
+🛍 *تعداد سرویس ها*: {len(user.subscriptions)}
+💎 *موجودی*: {user.balance:,} تومان
 
-    🔋 لینک *دعوت* زیرمجموعه:
-    `{user.referral_link}`
-    """
+🔋 لینک *دعوت* زیرمجموعه:
+`{user.referral_link}`"""
 
     keyboard = [
         [InlineKeyboardButton("➕ افزایش موجودی", callback_data=f"control-users_topup{{{user.id}}}")],
