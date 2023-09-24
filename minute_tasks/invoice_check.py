@@ -102,6 +102,4 @@ async def cron_job(bot: Bot):
             if invoice and status:
                 users.update_one({'_id': user_id}, {'$inc': {'balance': money}})
                 await send_notification(bot, user_id, money, invoice['user_data'])
-                invoices_queue.delete_one({'order_id': final_invoice.order_id})
-            if invoice and not status:
-                invoices_queue.delete_one({'order_id': final_invoice.order_id})
+            invoices_queue.delete_one({'order_id': final_invoice.order_id})

@@ -80,6 +80,7 @@ def run_periodically(function, interval, *args):
 def main():
     Prices(name="Default", plans=config.traffic_plans).commit_changes()
     application = Application.builder().token(config.token).build()
+    job_queue = application.job_queue
 
     for k, v in index().items():
         application.add_handler(CommandHandler(k, v))
@@ -94,7 +95,6 @@ def main():
     usage_expiry_scanner_cron = threading.Thread(target=run_periodically, args=(usage_expiry_scanner.cron, 60))
     usd_currency_scanner_cron = threading.Thread(target=run_periodically, args=(currency_scanner.usd_cron, 3600))
     crypto_currency_scanner_cron = threading.Thread(target=run_periodically, args=(currency_scanner.crypto_cron, 60))
-    crypto_invoice_scanner_cron = threading.Thread(target=run_periodically, args=(invoice_check.cron_job, 30, application.bot))
 
     add_user_cron.start()
     remove_user_cron.start()
@@ -102,7 +102,7 @@ def main():
     usage_expiry_scanner_cron.start()
     usd_currency_scanner_cron.start()
     crypto_currency_scanner_cron.start()
-    crypto_invoice_scanner_cron.start()
+    job_queue.run_repeating(invoice_check.cron_job, interval=30)
     application.run_polling()
 
 
