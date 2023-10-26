@@ -131,7 +131,6 @@ async def product(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    traffic = 0
     if update.callback_query:
         query = update.callback_query
         # Extract the traffic from the callback data
@@ -262,6 +261,11 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     user_id = update.effective_user.id
+
+    # Check if 'subscription' is in context.user_data
+    if 'subscription' not in context.user_data or context.user_data['subscription'] is None:
+        await query.answer("There was an error processing your request. Please try again.")
+        return ConversationHandler.END
 
     # Retrieve user from the database
     user_data = config.get_db().users.find_one({'_id': user_id})

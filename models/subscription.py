@@ -37,6 +37,10 @@ class Subscription(BaseModel):
     user_id: int
 
     @property
+    def link(self) -> str:
+        return f'{config.subscription_domain}/subscription?uuid={self.mongo_id}'
+
+    @property
     def remaining_seconds(self) -> float:
         return max(0.0, (self.expiry_time - datetime.datetime.now()).total_seconds())
 

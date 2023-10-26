@@ -168,6 +168,9 @@ class TopUpHandler:
         keyboard = [[InlineKeyboardButton('💰 پرداخت ریالی', callback_data=f'topup_method{{IRT}}')],
                     [InlineKeyboardButton('💸 پرداخت ارزی', callback_data=f'topup_method{{CRYPTO}}')],
                     [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data=CANCEL)]]
+
+        if not (config.portal_url and config.portal_key):
+            keyboard.remove([InlineKeyboardButton('💰 پرداخت ریالی', callback_data=f'topup_method{{IRT}}')])
         reply_markup = InlineKeyboardMarkup(keyboard)
         return await self._send_message(query, text, METHOD, reply_markup)
 
@@ -218,7 +221,7 @@ class TopUpHandler:
 
         reply_markup = None
         if (context.user_data['topup']['currency'] == 'TRX' and
-                context.user_data['topup']['network'] == 'TRON'):
+                context.user_data['topup']['network'] == 'TRON') and (config.portal_url and config.portal_key):
             amount = str(context.user_data['topup']['irt_amount'] / converter(context.user_data['topup']['currency']))
             url = httpx.post(
                 config.portal_url,

@@ -2,7 +2,7 @@ import asyncio
 import threading
 import time
 
-from telegram.ext import Application, CallbackQueryHandler, Updater
+from telegram.ext import Application, CallbackQueryHandler
 from handlers.index import index
 from conversations.index import conversations
 from callback.index import handlers
@@ -14,56 +14,56 @@ import logging
 
 from models.prices import Prices
 
-# import sys
-#
-#
-# class StreamToLogger(object):
-#     """
-#     Fake file-like stream object that redirects writes to a logger instance.
-#     """
-#     def __init__(self, logger, log_level=logging.INFO):
-#         self.logger = logger
-#         self.log_level = log_level
-#         self.linebuf = ''
-#
-#     def write(self, buf):
-#         temp_linebuf = self.linebuf + buf
-#         self.linebuf = ''
-#         for line in temp_linebuf.splitlines(True):
-#             # From the io.TextIOWrapper docs:
-#             #   On output, if newline is None, any '\n' characters written
-#             #   are translated to the system default line separator.
-#             # By default sys.stdout.write() expects '\n' newlines and then
-#             # translates them so this is still cross platform.
-#             if line[-1] == '\n':
-#                 self.logger.log(self.log_level, line.rstrip())
-#             else:
-#                 self.linebuf += line
-#
-#     def flush(self):
-#         if self.linebuf != '':
-#             self.logger.log(self.log_level, self.linebuf.rstrip())
-#         self.linebuf = ''
-#
-#
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format="%(name)s: %(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(process)d >>> %(message)s",
-#     filename="out.log",
-#     filemode='a'
-# )
-#
-# stdout_logger = logging.getLogger('STDOUT')
-# sl = StreamToLogger(stdout_logger, logging.INFO)
-# sys.stdout = sl
-#
-# stderr_logger = logging.getLogger('STDERR')
-# sl = StreamToLogger(stderr_logger, logging.ERROR)
-# sys.stderr = sl
-#
+import sys
+
+
+class StreamToLogger(object):
+    """
+    Fake file-like stream object that redirects writes to a logger instance.
+    """
+    def __init__(self, logger, log_level=logging.INFO):
+        self.logger = logger
+        self.log_level = log_level
+        self.linebuf = ''
+
+    def write(self, buf):
+        temp_linebuf = self.linebuf + buf
+        self.linebuf = ''
+        for line in temp_linebuf.splitlines(True):
+            # From the io.TextIOWrapper docs:
+            #   On output, if newline is None, any '\n' characters written
+            #   are translated to the system default line separator.
+            # By default sys.stdout.write() expects '\n' newlines and then
+            # translates them so this is still cross platform.
+            if line[-1] == '\n':
+                self.logger.log(self.log_level, line.rstrip())
+            else:
+                self.linebuf += line
+
+    def flush(self):
+        if self.linebuf != '':
+            self.logger.log(self.log_level, self.linebuf.rstrip())
+        self.linebuf = ''
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(name)s: %(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(process)d >>> %(message)s",
+    filename="out.log",
+    filemode='a'
+)
+
+stdout_logger = logging.getLogger('STDOUT')
+sl = StreamToLogger(stdout_logger, logging.INFO)
+sys.stdout = sl
+
+stderr_logger = logging.getLogger('STDERR')
+sl = StreamToLogger(stderr_logger, logging.ERROR)
+sys.stderr = sl
+
 config = Config('configuration.yaml')
 config.show_label()
-
+subscriptions = config.get_db().subscriptions
 
 def run_periodically(function, interval, *args):
     loop = asyncio.new_event_loop()
@@ -104,6 +104,5 @@ def main():
     crypto_currency_scanner_cron.start()
     job_queue.run_repeating(invoice_check.cron_job, interval=30)
     application.run_polling()
-
 
 main()

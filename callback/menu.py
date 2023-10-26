@@ -35,7 +35,7 @@ async def menu(update: Update, context):
         keyboard.append([InlineKeyboardButton('چک کردن عضویت', callback_data='menu')])
         reply_markup = InlineKeyboardMarkup(keyboard)
         text = '🔌 لطفا برای استفاده از خدمات ما در کانال های زیر عضو شوید. '
-        return await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        return await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
 
     # Create the reply markup for the start menu
     reply_markup = start_menu(user)

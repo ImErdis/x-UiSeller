@@ -7,7 +7,7 @@ prod:
     token: 
       6518933256:AAFK2pySUi5y5kX5D6-uM5GRZga3YaCE7WY
     database:
-      "mongodb+srv://test:test@test.fkbonxy.mongodb.net/?retryWrites=true&w=majority"
+      "mongodb+srv://thefurbykins:kmbG4gPY5nbWbXXb@slowvpn.skaifir.mongodb.net/?retryWrites=true&w=majority"
     cryptomus-payment-key:
       'if7oiiAZyTGUk5BpC33rLiUCgxx887qD2Eb2pnWXjubj7ATfkX74WS4Cqe8xvHujNQ9qMYgMcCbbr45FHGIHnO5mOoyVbXpuCCy8KKzlRoHgiyuFMjqnKH3xbJyCCQZD'
     cryptomus-merchant-uuid:

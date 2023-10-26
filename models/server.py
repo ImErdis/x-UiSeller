@@ -141,8 +141,9 @@ class Server(BaseModel):
         clients_data = settings['clients']
         clients = []
         for client in clients_data:
-            clients.append(
-                get_client(self.url, self.panel_username, self.panel_password, client['email']).json()['obj'])
+            data = get_client(self.url, self.panel_username, self.panel_password, client['email'])
+            if data.status_code == 200:
+                clients.append(data.json()['obj'])
 
         return clients
 
