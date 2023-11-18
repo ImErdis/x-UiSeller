@@ -1,5 +1,7 @@
 import datetime
 import re
+import uuid
+
 from bson import ObjectId
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Message, helpers
 from telegram.ext import (ContextTypes, ConversationHandler, CallbackQueryHandler)
@@ -16,6 +18,18 @@ products_db = config.get_db().products
 subscriptions_db = config.get_db().subscriptions
 TRAFFIC, TIME, CONFIRM, FINALIZE_PURCHASE = range(4)
 
+def is_valid_uuid4(uuid_string):
+    """
+    Check if a string is a valid UUID version 4.
+    """
+    try:
+        # Convert the string to a UUID and check if it's version 4.
+        val = uuid.UUID(uuid_string, version=4)
+    except ValueError:
+        # If it's a ValueError, then the string is not a valid UUID.
+        return False
+    # Also check if the original string matches the hex format without dashes
+    return val.hex == uuid_string.replace('-', '')
 
 def generate_pagination_buttons(page: int, count: int, base_callback: str) -> list[InlineKeyboardButton]:
     """
@@ -44,13 +58,32 @@ def get_products(page: int) -> list[Product]:
 
 async def buy_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    Entry point for the conversation to buy subscriptions.
+    Entry point for the conversation to buy subscriptions or renew them.
     """
     query = update.callback_query
 
-    # Extract the page number from the callback data
+    # Check if inside the query is UUID or not
     match = re.findall(r"\{(.*?)}", query.data)
-    page = int(match[0])
+
+    # Check if match[0] is uuid or number
+    if is_valid_uuid4(match[0]):
+        subscription_id = uuid.UUID(match[0])
+
+        # Fetch the subscription data
+        subscription_data = subscriptions_db.find_one({'_id': subscription_id, 'user_id': update.effective_user.id, 'active': False})
+
+        # Check if the subscription exists
+        if not subscription_data:
+            await query.answer('این اشتراک وجود ندارد.')
+            return ConversationHandler.END
+
+        # Add the subscription to the context
+        context.user_data['subscription'] = {'_id': subscription_id}
+
+        # Set the page to 1
+        page = 1
+    else:
+        page = int(match[0])
 
     # Fetch the products for the given page
     products = get_products(page)
@@ -63,9 +96,6 @@ async def buy_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     # Announce to user that the products are being fetched
     await query.answer('درحال دریافت محصولات...')
 
-    # Setup context.user_data for the conversation
-    context.user_data['subscription'] = {}
-
     # Define text
     text = "لطفا 🛍 *محصول* مورد نظرتون را انتخاب کنید.\n\n"
 
@@ -75,13 +105,13 @@ async def buy_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     for product in products:
         text += f"🔸 *{product.name}*: _{'_, _'.join([Server.model_validate(data).name for data in product.servers_documents])}_\n"
         name_button = InlineKeyboardButton(f'{product.name}',
-                                           callback_data=f'buy-subscription_product{{{product.mongo_id}}}')
+                                           callback_data=f'renew-subscription_product{{{product.mongo_id}}}')
         keyboard.append([name_button])
 
     # Organizing buttons
     header_buttons = [InlineKeyboardButton(header, callback_data="notabutton") for header in headers]
     pagination_buttons = generate_pagination_buttons(page, products_db.count_documents(
-        {'status': {'$in': [Status.Both.value, Status.Shop.value]}}), "buy-subscription")
+        {'status': {'$in': [Status.Both.value, Status.Shop.value]}}), "renew-subscription")
     return_button = [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]
 
     keyboard = [header_buttons] + keyboard + [pagination_buttons] + [return_button]
@@ -114,9 +144,9 @@ async def product(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     for plan in product.traffic_plans:
         price = round(plan['price'] * product.price_multiplier)
         keyboard.append([InlineKeyboardButton(f'{plan["traffic"]:,}G',
-                                              callback_data=f'buy-subscription_traffic{{{plan["traffic"]}}}'),
+                                              callback_data=f'renew-subscription_traffic{{{plan["traffic"]}}}'),
                          InlineKeyboardButton(f'{price:,}T',
-                                              callback_data=f'buy-subscription_traffic{{{plan["traffic"]}}}')])
+                                              callback_data=f'renew-subscription_traffic{{{plan["traffic"]}}}')])
 
     # Organizing buttons
     header_buttons = [InlineKeyboardButton(header, callback_data="notabutton") for header in headers]
@@ -183,12 +213,12 @@ async def time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         price = base_price * duration
         if duration in discounts:
             price = round(price * discounts[duration])
-        duration_button = InlineKeyboardButton(f'{label}', callback_data=f'buy-subscription_duration{{{duration}}}')
-        price_button = InlineKeyboardButton(f'{price:,}T', callback_data=f'buy-subscription_duration{{{duration}}}')
+        duration_button = InlineKeyboardButton(f'{label}', callback_data=f'renew-subscriptions_duration{{{duration}}}')
+        price_button = InlineKeyboardButton(f'{price:,}T', callback_data=f'renew-subscriptions_duration{{{duration}}}')
         keyboard.append([duration_button, price_button])
 
     reselect_button = [InlineKeyboardButton("🔄 انتخاب دوباره ترافیک",
-                                            callback_data=f"buy-subscription_product{{{context.user_data['subscription']['product']}}}")]
+                                            callback_data=f"renew-subscription_product{{{context.user_data['subscription']['product']}}}")]
     keyboard.append(reselect_button)
 
     return_button = [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]
@@ -210,6 +240,12 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     product_data = products_db.find_one({'_id': context.user_data['subscription']['product']})
     if not product_data:
         await query.answer('محصول مورد نظر یافت نشد.')
+        return ConversationHandler.END
+
+    # Check if users subscription is inactive
+    subscription_data = subscriptions_db.find_one({'_id': context.user_data['subscription']['_id'], 'active': False})
+    if not subscription_data:
+        await query.answer('این اشتراک وجود ندارد.')
         return ConversationHandler.END
 
     # Convert the product data to the Product model
@@ -248,7 +284,7 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             InlineKeyboardButton("❌ خیر", callback_data=f'cancel')
         ],
         [InlineKeyboardButton("🔄 انتخاب دوباره زمان",
-                              callback_data=f'buy-subscription_traffic{{{context.user_data["subscription"]["traffic"]}}}')],
+                              callback_data=f'renew-subscription_traffic{{{context.user_data["subscription"]["traffic"]}}}')],
         [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]
     ]
 
@@ -266,6 +302,15 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if 'subscription' not in context.user_data or context.user_data['subscription'] is None:
         await query.answer("There was an error processing your request. Please try again.")
         return ConversationHandler.END
+
+    # Check if users subscription is inactive
+    subscription_data = subscriptions_db.find_one({'_id': context.user_data['subscription']['_id'], 'active': False})
+    if not subscription_data:
+        await query.answer('این اشتراک وجود ندارد.')
+        return ConversationHandler.END
+
+    # Convert the subscription data to the Subscription model
+    subscription = Subscription.model_validate(subscription_data)
 
     # Retrieve user from the database
     user_data = config.get_db().users.find_one({'_id': user_id})
@@ -302,26 +347,21 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         user.balance -= final_price
         user.purchase_amount += final_price
 
-        # Count the existing subscriptions for the user
-        existing_subscriptions_count = subscriptions_db.count_documents({'user_id': user.id})
-
-        # Append the count to the subscription name
-        subscription_name = f"{query.from_user.full_name} #{existing_subscriptions_count + 1}"
-
         expiry_time = datetime.datetime.now() + datetime.timedelta(
             seconds=context.user_data['subscription']['duration'] * 30 * 24 * 60 * 60)
         subscription = Subscription(
+            mongo_id=subscription.mongo_id,
             product=product.mongo_id,
             expiry_time=expiry_time,
             traffic=int(context.user_data['subscription']['traffic'] * context.user_data['subscription']['duration']),
-            name=subscription_name,
+            name=subscription.name,
             user_id=user.id
         )
 
         # Add the servers to the subscription and initiate it
         subscription.add_servers([Server.model_validate(server) for server in product.servers_documents])
         subscription.initiate_on_servers()
-        subscriptions_db.insert_one(subscription.model_dump(by_alias=True))
+        subscriptions_db.update_one({'_id': subscription.mongo_id}, subscription.model_dump(by_alias=True))
 
         # Update product's stock
         products_db.update_one({'_id': product.mongo_id}, {'$inc': {'stock': -1}})
@@ -375,18 +415,18 @@ async def _send_message(target, reply_markup, text, next_state):
 
 conv_handler = ConversationHandler(
     per_message=False,
-    entry_points=[CallbackQueryHandler(confirm, pattern='^buy-subscriptions{continue}$'),
-                  CallbackQueryHandler(buy_subscriptions, pattern='^buy-subscriptions{')],
+    entry_points=[CallbackQueryHandler(confirm, pattern='^renew-subscriptions{continue}$'),
+                  CallbackQueryHandler(buy_subscriptions, pattern='^renew-subscriptions{')],
     states={
-        TRAFFIC: [CallbackQueryHandler(product, pattern='^buy-subscription_product{')],
+        TRAFFIC: [CallbackQueryHandler(product, pattern='^renew-subscription_product{')],
         # CUSTOM_TRAFFIC: [CallbackQueryHandler(custom_traffic, pattern='^buy-subscription_custom-traffic$')],
         TIME: [
-            CallbackQueryHandler(time, pattern='^buy-subscription_traffic{')
+            CallbackQueryHandler(time, pattern='^renew-subscription_traffic{')
         ],
-        CONFIRM: [CallbackQueryHandler(confirm, pattern='^buy-subscription_duration{'),
-                  CallbackQueryHandler(product, pattern='^buy-subscription_product{')],
+        CONFIRM: [CallbackQueryHandler(confirm, pattern='^renew-subscriptions_duration{'),
+                  CallbackQueryHandler(product, pattern='^renew-subscription_product{')],
         FINALIZE_PURCHASE: [CallbackQueryHandler(finalize_purchase, pattern='^finalize_purchase$'),
-                            CallbackQueryHandler(time, pattern='^buy-subscription_traffic{')]
+                            CallbackQueryHandler(time, pattern='^renew-subscription_traffic{')]
     },
     fallbacks=[CallbackQueryHandler(menu, pattern="^cancel$")],
     allow_reentry=True

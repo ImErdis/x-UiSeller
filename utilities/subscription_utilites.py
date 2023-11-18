@@ -1,9 +1,11 @@
 from telegram import InlineKeyboardButton
 
+from models.subscription import Subscription
 
-def create_keyboard(remaining_traffic, remaining_seconds, subscription):
+
+def create_keyboard(remaining_traffic, remaining_seconds, subscription: Subscription):
     """Generate inline keyboard for the given subscription."""
-    return [
+    keyboard = [
         [InlineKeyboardButton(header, callback_data='notabutton') for header in
          ['⚡️ حجم باقی‌مانده', '⏳ زمان باقی‌مانده']],
         [InlineKeyboardButton(value, callback_data='notabutton') for value in
@@ -12,6 +14,11 @@ def create_keyboard(remaining_traffic, remaining_seconds, subscription):
                               callback_data=f'connect_url-subscriptions{{{subscription.uuid_decoded}}}')],
         [InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="menu")]
     ]
+
+    if remaining_traffic <= 0 or remaining_seconds <= 0:
+        keyboard.insert(3, [InlineKeyboardButton('🔁 تمدید اشتراک', callback_data=f'renew-subscriptions{{{subscription.uuid_decoded}}}')])
+
+    return keyboard
 
 
 def format_time(remaining_seconds):
