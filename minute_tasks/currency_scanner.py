@@ -8,23 +8,23 @@ currencies_db = config.get_db().currencies
 
 def usd_cron():
     """Updates the USD price in the database."""
-    response = httpx.get(url='https://alanchand.com/api/price-free?type=currencies')
+    response = httpx.get(url='https://abantether.com/api/v1/otc/coin-price/', headers={'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDYxMDkiLCJpYXQiOjE3MDY4ODg5ODQsImV4cCI6MTczODQyNDk4NH0.5yKVzoRDShALiYBHOpHOSolaZ2AG5x8JENQ_Jeq1lsA'})
 
     # Only proceed if we get a successful response
     if response.status_code == 200:
-        for currency in response.json():
-            if currency['slug'] == 'usd':
-                # Check if USD already exists in the database
-                if currencies_db.find_one({'name': 'USD'}):
-                    currencies_db.update_one({'name': 'USD'}, {'$set': {'price': {'USD': 1, 'IRT': float(currency['buy'])}}})
-                else:
-                    # If not, insert a new USD entry
-                    currencies_db.insert_one({'name': 'USD', 'price': {'USD': 1, 'IRT': float(currency['buy'])}})
-                if currencies_db.find_one({'name': 'IRT'}):
-                    currencies_db.update_one({'name': 'IRT'}, {'$set': {'price': {'USD': 1/float(currency['buy']), 'IRT': 1}}})
-                else:
-                    currencies_db.insert_one({'name': 'IRT', 'price': {'USD': 1/float(currency['buy']), 'IRT': 1}})
-                break  # Exit the loop after updating/inserting USD
+        data = response.json()
+        if 'USDT' in data:
+            usdt_data = data['USDT']
+            # Check if USD already exists in the database
+            if currencies_db.find_one({'name': 'USD'}):
+                currencies_db.update_one({'name': 'USD'}, {'$set': {'price': {'USD': 1, 'IRT': float(usdt_data['irtPriceBuy'])}}})
+            else:
+                # If not, insert a new USD entry
+                currencies_db.insert_one({'name': 'USD', 'price': {'USD': 1, 'IRT': float(usdt_data['irtPriceBuy'])}})
+            if currencies_db.find_one({'name': 'IRT'}):
+                currencies_db.update_one({'name': 'IRT'}, {'$set': {'price': {'USD': 1/float(usdt_data['irtPriceBuy']), 'IRT': 1}}})
+            else:
+                currencies_db.insert_one({'name': 'IRT', 'price': {'USD': 1/float(usdt_data['irtPriceBuy']), 'IRT': 1}})
 
 
 def crypto_cron():

@@ -119,15 +119,16 @@ class TopUpHandler:
 🌐 *شبکه*: {invoice_response.network}
 💳 *آدرس ولت*: `{invoice_response.address}`
 
-📌 پس از پرداخت و تایید تراکنش توسط شبکه موجودی شما به مبلغ  {int(invoice_response.additional_data):,} تومان شارژ خواهد شد , درنظر داشته باشید ممکن است روند تایید تراکنش  بین 1 تا 20 دقیقه طول بکشد
+📌 پس از پرداخت و تایید تراکنش توسط شبکه موجودی شما به مبلغ  {int(invoice_response.additional_data):,} تومان شارژ 
+خواهد شد , درنظر داشته باشید ممکن است روند تایید تراکنش  بین 1 تا 20 دقیقه طول بکشد
 
 ⚠️ هشدار: در صورت اشتباه وارد کردن مبلغ تراکنش و آدرس ولت، ممکن است تراکنش تایید نشود و بازگشت وجه امکان پذیر نیست
 
 〽️ پرداخت شما به صورت خودکار پردازش می شود"""
 
     @staticmethod
-    async def _send_message(target, text, next_state, reply_markup=InlineKeyboardMarkup(
-        [[InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]])):
+    async def _send_message(target, text, next_state, reply_markup=InlineKeyboardMarkup([[
+                            InlineKeyboardButton("🖥️ بازگشت به پنل", callback_data="cancel")]])):
         """Send or edit a message based on the target type."""
         if isinstance(target, Message):
             await target.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
@@ -220,22 +221,22 @@ class TopUpHandler:
         self.insert_invoice_if_not_exists(invoice_response)
 
         reply_markup = None
-        if (context.user_data['topup']['currency'] == 'TRX' and
-                context.user_data['topup']['network'] == 'TRON') and (config.portal_url and config.portal_key):
+        if ((context.user_data['topup']['currency'] == 'TRX' and context.user_data['topup']['network'] == 'TRON')
+                and (config.portal_url and config.portal_key)):
             amount = str(context.user_data['topup']['irt_amount'] / converter(context.user_data['topup']['currency']))
             url = httpx.post(
                 config.portal_url,
-                data={'key': config.portal_key, 'amount': amount, 'wallet': invoice_response.address},
-                headers={'Content-Type': 'application/x-www-form-urlencoded'}
+                json={'amount': amount, 'wallet': invoice_response.address, 'currency': 'TRX'},
+                headers={'Token': config.portal_key, 'Content-Type': 'application/json'}
             )
 
             reply_markup = InlineKeyboardMarkup(
-                [[InlineKeyboardButton('💰 پرداخت ریالی', url=url.text, callback_data='notabutton')]])
+                [[InlineKeyboardButton('💰 پرداخت ریالی', url=url.json()['url'], callback_data='notabutton')]])
 
         if 'subscription' not in context.user_data:
             context.user_data['subscription'] = {}
 
-        add_job(invoice_response.order_id, context.user_data['subscription'])
+        await add_job(invoice_response.order_id, context.user_data['subscription'])
         text = self.generate_invoice_text(invoice_response)
 
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')

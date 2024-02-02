@@ -30,8 +30,8 @@ prod:
       - traffic: 100
         price: 100000
     irr-portal:
-      - link: 'https://api.mrswap.org/custom.php'
-        key: '371401024961887068039984'
+      - link: 'https://api.fastswaptrx.com/v1/creatPayment'
+        key: '6126561376:1f2fd85c8b8be76f2e492c2c5c7be88a'
     force-channels:
       - id: -1001860158304
         link: 'https://t.me/+hjcbgWl3jyw2Yzk0'
