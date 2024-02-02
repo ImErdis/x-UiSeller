@@ -1,38 +1,37 @@
 mode: prod
 prod:
-  - botname: Slow VPN
-    username: SlowVPNBOT
-    subscription-domain: 'https://sub.slow-service.com'
-    admin: 1211590718
-    token: 
-      6518933256:AAFK2pySUi5y5kX5D6-uM5GRZga3YaCE7WY
+  - botname: VingPN
+    username: VingPNBot
+    subscription-domain: 'https://sub.vingpn.com'
+    admin: 5818413947
+    token:
+      6288043295:AAH2Hr9Tvbh1CqKGGltbZUw18IVXsMqUYcs
     database:
-      "mongodb+srv://thefurbykins:kmbG4gPY5nbWbXXb@slowvpn.skaifir.mongodb.net/?retryWrites=true&w=majority"
+      "mongodb+srv://vingpnemail:7PNZx487qfkPtk6e@vingpn.ws0hghg.mongodb.net/?retryWrites=true&w=majority"
     cryptomus-payment-key:
-      'if7oiiAZyTGUk5BpC33rLiUCgxx887qD2Eb2pnWXjubj7ATfkX74WS4Cqe8xvHujNQ9qMYgMcCbbr45FHGIHnO5mOoyVbXpuCCy8KKzlRoHgiyuFMjqnKH3xbJyCCQZD'
+      '0Qa3bATWKhV1IS2p23y0FlD32KM0f4MTwmVV955FsAZlz9QmlgVGW224CXY2vbOf3C7mrdGHDDTfAmuahbjds5USNTYiZE27xj3bGs2Ur6T5PMwQNoy4zJr06APX5Yay'
     cryptomus-merchant-uuid:
-      'f3225265-c19f-4ea5-9d1c-4598c10aed58'
+      '9275cc11-f92a-4aeb-9f4d-6a9aaf843d85'
     support-id:
-      ''
+      'VingSupport'
     channel-id:
-      'SlowService'
+      'VingPN'
     punch-line:
-      'با اسلو، اینترنت هم وقت برای یک فنجان چای داره!'
+      'ایمن، ناشناس و متصل به دنیا بمانید'
     test-subscription-traffic: #GB is the main identifier
-      1
+      0.1
     test-subscription-time: #Seconds
       86400
     traffic-plans:
       - traffic: 50
-        price: 50000
-      - traffic: 75
-        price: 75000
+        price: 80000
       - traffic: 100
-        price: 100000
+        price: 140000
+      - traffic: 200
+        price: 220000
     irr-portal:
       - link: 'https://api.fastswaptrx.com/v1/creatPayment'
         key: '6126561376:1f2fd85c8b8be76f2e492c2c5c7be88a'
     force-channels:
-      - id: -1001860158304
-        link: 'https://t.me/+hjcbgWl3jyw2Yzk0'
-
+      - id: -1001745756265
+        link: 'https://t.me/+WjDmPa0ePss2MmE0'
