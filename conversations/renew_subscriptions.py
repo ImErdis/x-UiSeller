@@ -1,3 +1,4 @@
+import base64
 import datetime
 import re
 import uuid
@@ -18,18 +19,18 @@ products_db = config.get_db().products
 subscriptions_db = config.get_db().subscriptions
 TRAFFIC, TIME, CONFIRM, FINALIZE_PURCHASE = range(4)
 
+
 def is_valid_uuid4(uuid_string):
     """
     Check if a string is a valid UUID version 4.
     """
     try:
         # Convert the string to a UUID and check if it's version 4.
-        val = uuid.UUID(uuid_string, version=4)
+        return uuid.UUID(bytes=base64.b64decode(uuid_string.encode() + b'==', version=4))
     except ValueError:
         # If it's a ValueError, then the string is not a valid UUID.
         return False
-    # Also check if the original string matches the hex format without dashes
-    return val.hex == uuid_string.replace('-', '')
+
 
 def generate_pagination_buttons(page: int, count: int, base_callback: str) -> list[InlineKeyboardButton]:
     """
@@ -67,10 +68,11 @@ async def buy_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     # Check if match[0] is uuid or number
     if is_valid_uuid4(match[0]):
-        subscription_id = uuid.UUID(match[0])
+        subscription_id = is_valid_uuid4(match[0])
 
         # Fetch the subscription data
-        subscription_data = subscriptions_db.find_one({'_id': subscription_id, 'user_id': update.effective_user.id, 'active': False})
+        subscription_data = subscriptions_db.find_one(
+            {'_id': subscription_id, 'user_id': update.effective_user.id, 'active': False})
 
         # Check if the subscription exists
         if not subscription_data:
@@ -361,7 +363,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         # Add the servers to the subscription and initiate it
         subscription.add_servers([Server.model_validate(server) for server in product.servers_documents])
         subscription.initiate_on_servers()
-        subscriptions_db.update_one({'_id': subscription.mongo_id}, subscription.model_dump(by_alias=True))
+        subscriptions_db.update_one({'_id': subscription.mongo_id}, {'$set': subscription.model_dump(by_alias=True)})
 
         # Update product's stock
         products_db.update_one({'_id': product.mongo_id}, {'$inc': {'stock': -1}})

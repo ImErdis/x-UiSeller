@@ -8,7 +8,12 @@ currencies_db = config.get_db().currencies
 
 def usd_cron():
     """Updates the USD price in the database."""
-    response = httpx.get(url='https://abantether.com/api/v1/otc/coin-price/', headers={'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDYxMDkiLCJpYXQiOjE3MDY4ODg5ODQsImV4cCI6MTczODQyNDk4NH0.5yKVzoRDShALiYBHOpHOSolaZ2AG5x8JENQ_Jeq1lsA'})
+    with httpx.Client(follow_redirects=True) as client:
+        response = client.get(
+            url='https://abantether.com/api/v1/otc/coin-price/',
+            headers={
+                'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDYxMDkiLCJpYXQiOjE3MDY4ODg5ODQsImV4cCI6MTczODQyNDk4NH0.5yKVzoRDShALiYBHOpHOSolaZ2AG5x8JENQ_Jeq1lsA'}
+        )
 
     # Only proceed if we get a successful response
     if response.status_code == 200:

@@ -7,7 +7,7 @@ prod:
     token:
       6288043295:AAH2Hr9Tvbh1CqKGGltbZUw18IVXsMqUYcs
     database:
-      "mongodb+srv://vingpnemail:7PNZx487qfkPtk6e@vingpn.ws0hghg.mongodb.net/?retryWrites=true&w=majority"
+      "mongodb://87.120.167.179:27017/"
     cryptomus-payment-key:
       '0Qa3bATWKhV1IS2p23y0FlD32KM0f4MTwmVV955FsAZlz9QmlgVGW224CXY2vbOf3C7mrdGHDDTfAmuahbjds5USNTYiZE27xj3bGs2Ur6T5PMwQNoy4zJr06APX5Yay'
     cryptomus-merchant-uuid:
@@ -19,9 +19,9 @@ prod:
     punch-line:
       'ایمن، ناشناس و متصل به دنیا بمانید'
     test-subscription-traffic: #GB is the main identifier
-      0.1
+      3
     test-subscription-time: #Seconds
-      86400
+      604800
     traffic-plans:
       - traffic: 50
         price: 80000
