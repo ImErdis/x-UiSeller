@@ -127,6 +127,22 @@ async def send_notification(bot: Bot, user_id: int, money: int, user_data: dict)
     await bot.send_message(user_id, text=text, reply_markup=reply_markup, parse_mode='Markdown')
 
 
+async def send_expired_notification(bot: Bot, user_id: int, order_id: str):
+    """
+    Send a notification to a user regarding an expired invoice.
+
+    Args:
+        bot (Bot): The telegram bot instance.
+        user_id (int): The ID of the user.
+        order_id (str): The ID of the order that is expired.
+    """
+    text = f"توجه: فاکتور با شناسه {order_id} منقضی شده است. لطفاً برای پرداخت مجدد اقدام نفرمایید."
+    keyboard = [[InlineKeyboardButton("🔍 بررسی فاکتورها", callback_data="check-invoices")],
+                [InlineKeyboardButton("🖥️ پنل", callback_data="menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await bot.send_message(user_id, text=text, reply_markup=reply_markup, parse_mode='Markdown')
+
+
 async def cron_job(bot: Bot):
     """
         Periodically checks the status of pending orders and updates the users and database accordingly.
@@ -146,5 +162,7 @@ async def cron_job(bot: Bot):
 
             if invoice and status:
                 await users.update_one({'_id': user_id}, {'$inc': {'balance': money}})
-                await send_notification(bot, user_id, money, invoice['user_data'])
+                await send_notification(bot.bot, user_id, money, invoice['user_data'])
+            else:
+                await send_expired_notification(bot.bot, user_id, invoice['uuid'])
             await invoices_queue.delete_one({'order_id': final_invoice.order_id})
