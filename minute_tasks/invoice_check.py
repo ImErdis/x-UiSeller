@@ -136,7 +136,9 @@ async def send_expired_notification(bot: Bot, user_id: int, order_id: str):
         user_id (int): The ID of the user.
         order_id (str): The ID of the order that is expired.
     """
-    text = f"توجه: فاکتور با شناسه {order_id} منقضی شده است. لطفاً برای پرداخت مجدد اقدام نفرمایید."
+    text = f"""❌ تراکنش زیر بدلیل عدم پرداخت منقضی شد، لطفا وجهی بابت این تراکنش پرداخت نکنید
+
+🔖 کد رهگیری:  {order_id}"""
     keyboard = [[InlineKeyboardButton("🔍 بررسی فاکتورها", callback_data="check-invoices")],
                 [InlineKeyboardButton("🖥️ پنل", callback_data="menu")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -161,8 +163,12 @@ async def cron_job(bot: Bot):
             invoice = await invoices_queue.find_one({'order_id': final_invoice.order_id})
 
             if invoice and status:
-                await users.update_one({'_id': user_id}, {'$inc': {'balance': money}})
                 await send_notification(bot.bot, user_id, money, invoice['user_data'])
+                try:
+                    await send_notification(bot.bot, config.admin, money, {})
+                except:
+                    continue
+                await users.update_one({'_id': user_id}, {'$inc': {'balance': money}})
             else:
                 await send_expired_notification(bot.bot, user_id, invoice['uuid'])
             await invoices_queue.delete_one({'order_id': final_invoice.order_id})
