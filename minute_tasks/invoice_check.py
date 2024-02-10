@@ -139,8 +139,7 @@ async def send_expired_notification(bot: Bot, user_id: int, order_id: str):
     text = f"""❌ تراکنش زیر بدلیل عدم پرداخت منقضی شد، لطفا وجهی بابت این تراکنش پرداخت نکنید
 
 🔖 کد رهگیری:  {order_id}"""
-    keyboard = [[InlineKeyboardButton("🔍 بررسی فاکتورها", callback_data="check-invoices")],
-                [InlineKeyboardButton("🖥️ پنل", callback_data="menu")]]
+    keyboard = [[InlineKeyboardButton("🖥️ پنل", callback_data="menu")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await bot.send_message(user_id, text=text, reply_markup=reply_markup, parse_mode='Markdown')
 
