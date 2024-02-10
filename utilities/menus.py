@@ -43,7 +43,7 @@ def start_menu(user: User) -> InlineKeyboardMarkup:
          InlineKeyboardButton("🔬 اشتراک تستی", callback_data="test-subscriptions"),
          InlineKeyboardButton("📋 اطلاعات حساب", callback_data="user_info")],
         [InlineKeyboardButton("📞 ارتباط با ما", callback_data="contact_info"),
-         InlineKeyboardButton("📘 راهنمای اتصال", url="https://t.me/Slow_Learn")
+         InlineKeyboardButton("📘 راهنمای اتصال", url="https://t.me/VingLearn")
          ]
     ]
 
