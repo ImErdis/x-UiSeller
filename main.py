@@ -8,7 +8,7 @@ from conversations.index import conversations
 from callback.index import handlers
 from telegram.ext import CommandHandler
 from configuration import Config
-from minute_tasks import add_client, delete_client, usage_updater, usage_expiry_scanner, currency_scanner, invoice_check
+from minute_tasks import add_client, delete_client, usage_updater, usage_expiry_scanner, currency_scanner, invoice_check, send_notification
 
 import logging
 
@@ -103,6 +103,7 @@ def main():
     usd_currency_scanner_cron.start()
     crypto_currency_scanner_cron.start()
     job_queue.run_repeating(invoice_check.cron_job, interval=30)
+    job_queue.run_repeating(send_notification.cron, interval=30)
     application.run_polling()
 
 main()
