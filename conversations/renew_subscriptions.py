@@ -26,7 +26,7 @@ def is_valid_uuid4(uuid_string):
     """
     try:
         # Convert the string to a UUID and check if it's version 4.
-        return uuid.UUID(bytes=base64.b64decode(uuid_string.encode() + b'==', version=4))
+        return uuid.UUID(bytes=base64.b64decode(uuid_string.encode() + b'==', ), version=4)
     except ValueError:
         # If it's a ValueError, then the string is not a valid UUID.
         return False
@@ -351,6 +351,7 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         expiry_time = datetime.datetime.now() + datetime.timedelta(
             seconds=context.user_data['subscription']['duration'] * 30 * 24 * 60 * 60)
+        mongo_id = subscription.mongo_id
         subscription = Subscription(
             mongo_id=subscription.mongo_id,
             product=product.mongo_id,
@@ -359,12 +360,12 @@ async def finalize_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             name=subscription.name,
             user_id=user.id
         )
+        subscription.mongo_id = mongo_id
 
         # Add the servers to the subscription and initiate it
         subscription.add_servers([Server.model_validate(server) for server in product.servers_documents])
         subscription.initiate_on_servers()
         subscriptions_db.update_one({'_id': subscription.mongo_id}, {'$set': subscription.model_dump(by_alias=True)})
-
         # Update product's stock
         products_db.update_one({'_id': product.mongo_id}, {'$inc': {'stock': -1}})
 

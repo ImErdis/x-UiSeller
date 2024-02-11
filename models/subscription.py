@@ -52,8 +52,10 @@ class Subscription(BaseModel):
         """
         Initiate the subscriptions on servers.
         """
-        if subscriptions_db.find_one({'_id': self.mongo_id}):
-            raise ValueError(f'{self.name} Already initiated')
+        subscription = subscriptions_db.find_one({'_id': self.mongo_id})
+        if subscription:
+            if subscription['active']:
+                raise ValueError(f'{self.name} Already initiated')
 
         server_ids = [ObjectId(x) for x in self.servers.keys()]
         servers = [Server.model_validate(data) for data in servers_db.find({'_id': {'$in': server_ids}})]
