@@ -1,17 +1,17 @@
 mode: prod
 prod:
-  - botname: VingPN
-    username: VingPNBot
-    subscription-domain: 'https://sub.vingpn.com'
-    admin: 5818413947
+  - botname: VingPN #Bot Name
+    username: VingPNBot #Bot Username
+    subscription-domain: 'https://sub.vingpn.com' #Subscription Doman (Lazem nist hatman set bashe)
+    admin: 5818413947 # Admin ID
     token:
-      6288043295:AAH2Hr9Tvbh1CqKGGltbZUw18IVXsMqUYcs
+      BOT_TOKEN
     database:
-      "mongodb://87.120.167.179:27017/"
+      "mongodb://localhost:27017/" #Mongodb
     cryptomus-payment-key:
-      '0Qa3bATWKhV1IS2p23y0FlD32KM0f4MTwmVV955FsAZlz9QmlgVGW224CXY2vbOf3C7mrdGHDDTfAmuahbjds5USNTYiZE27xj3bGs2Ur6T5PMwQNoy4zJr06APX5Yay'
+      ''
     cryptomus-merchant-uuid:
-      '9275cc11-f92a-4aeb-9f4d-6a9aaf843d85'
+      ''
     support-id:
       'VingSupport'
     channel-id:
@@ -22,16 +22,16 @@ prod:
       3
     test-subscription-time: #Seconds
       604800
-    traffic-plans:
+    traffic-plans: #پایه و اولیه، اضافه هم میشه زد داخل پنل مدیریت
       - traffic: 50
         price: 80000
       - traffic: 100
         price: 140000
       - traffic: 200
         price: 220000
-    irr-portal:
+    irr-portal: #ترونادو آیدیشو ازم بگیرید
       - link: 'https://api.fastswaptrx.com/v1/creatPayment'
-        key: '6126561376:1f2fd85c8b8be76f2e492c2c5c7be88a'
+        key: 'API Key'
     force-channels:
       - id: -1001745756265
         link: 'https://t.me/+WjDmPa0ePss2MmE0'
